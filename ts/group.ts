@@ -2,7 +2,7 @@
 
 module groups {
 
-	class Collection<T> {
+	export class Collection<T> {
 		private items: Array<T>;
 
 		constructor() {
@@ -15,10 +15,20 @@ module groups {
 
 		add(value: T): void {
 			this.items.push(value);
-	  }
+	    }
 
 		get(index: number): T {
 			return this.items[index];
+		}
+
+		public contains(value:T) {
+			for (var i = 0; i < this.size(); i++) {
+				for (var j = 0; j < this.size(); j++) {
+					if (this.get(i) == this.get(j))
+						return true;
+				}
+			}
+			return false;
 		}
 	}
 
@@ -104,24 +114,64 @@ module groups {
 
 		constructor(identity:Element, operation:GroupOperation, elements:Collection<Element>) {
 
-			this.identity = identity;
+			this._identity = identity;
 			this.operation = operation;
-			this.elements = elements;
+			this._elements = elements;
 
 			// Find group properties
 
 
 		}
 
-		public static getInverse(element:Element, G:Group) {
+		// Return null if the group cannot be generated.
+		constructor(generatingSet:Collection<Element>, operation:GroupOperation) {
+			var groupElements:Collection<Element> = new Collection()<Element>;
+			var identity:Element;
+			var temp:Element;
+
+			// todo: ???
+			for (var i = 0; i < generatingSet.size(); i++) {
+				for (var j = 0; j < generatingSet.size(); j++) {
+					temp = operation(generatingSet.get(i), generatingSet.get(j));
+						groupElements.add(temp);
+				}
+			}
+
+			// Determine if identity element exists/ what it is.
+			var identityFound:boolean = false;
+			for (var i = 0; i < groupElements.size(); i++) {
+				for (var j = 0; j < groupElements.size(); j++) {
+					if (operation(groupElements.get(i), groupElements.get(j)) != groupElements.get(j))
+						break;
+				}
+				if (identityFound != true) {
+					identity = groupElements.get()
+					identityFound = true;
+				}
+				else
+					return null; // more than one identity found.
+			}
+
+			// Determine if every element of the group is invertible.
+			var inverseFound:boolean = false;
+
+			for (var i = 0; i < groupElements.size(); i++) {
+				for (var j = 0; j < groupElements.size(); j++) {
+					if (operation(groupElements.get(i), groupElements.get(j)))
+				}
+			}
+		}
+
+		operate(left:Element, right:Element):Element {
+				return this.operation(left, right);
+			}
+
+		static getInverse(element:Element, G:Group) {
 
 		}
 
 		// Group events
 		private onChanged() {
-
 		}
-
-
 	}
 }
