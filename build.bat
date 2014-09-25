@@ -1,0 +1,1 @@
+tsc -sourcemap ts/app.ts --target ES5 --out js/app.js

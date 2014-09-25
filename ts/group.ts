@@ -17,18 +17,16 @@ module groups {
 			this.items.push(value);
 	    }
 
+		remove(index: number): void {
+			this.items.splice(index, 1);
+		}
+
 		get(index: number): T {
 			return this.items[index];
 		}
 
-		public contains(value:T) {
-			for (var i = 0; i < this.size(); i++) {
-				for (var j = 0; j < this.size(); j++) {
-					if (this.get(i) == this.get(j))
-						return true;
-				}
-			}
-			return false;
+		contains(value: T):boolean {
+			return this.items.indexOf(value) > -1;
 		}
 	}
 
@@ -44,7 +42,7 @@ module groups {
 		}
 	}
 
-	interface GroupOperation {
+	export interface GroupOperation {
 		(left:Element, right:Element): Element;
 	}
 
@@ -75,38 +73,38 @@ module groups {
 		}
 
 		private init() {
-			this._isAbelian = this.isAbelian();
-			this._isCyclic = this.isCyclic();
-			this._order = this.order ();
+			this._isAbelian = this.checkAbelian();
+			this._isCyclic = this.checkCyclic();
+			this._order = this.elements.size();
 		}
 
 		// Order of an element within the group
-		private order(element:Element):number {
+		private eOrder(element:Element):number {
 			var order:number;
 			var current:Element = element;
-			for (order = 1; !current.Equals(this.identity); order++)
+			for (order = 1; !(current == this.identity) && order < this.elements.size(); order++)
 			{
 				current = this.operation(current, element);
 			}
 			return order;
 		}
 
-		private isAbelian():boolean {
+		private checkAbelian():boolean {
 			for (var i = 0; i < this.elements.size(); i++)
 			{
 				for (var j = 0; j < this.elements.size(); j++)
 				{
-					if (!this.operation(this.elements.get(i), this.elements.get(j)).Equals(this.operation(elements[j], elements[i])))
+					if (!(this.operation(this.elements.get(i), this.elements.get(j)) == (this.operation(this.elements.get(j), this.elements.get(i)))))
 						return false;
 				}
 			}
 			return true;
 		}
 
-		private isCyclic() {
+		private checkCyclic():boolean {
 			for (var i = 0; i < this.elements.size(); i++)
 			{
-				if (GetOrder(this.elements.get(i)) == this.elements.size())
+				if (this.eOrder(this.elements.get(i)) == this.elements.size())
 					return true;
 			}
 			return false;
@@ -119,47 +117,61 @@ module groups {
 			this._elements = elements;
 
 			// Find group properties
-
+			this.init();
 
 		}
 
 		// Return null if the group cannot be generated.
-		constructor(generatingSet:Collection<Element>, operation:GroupOperation) {
-			var groupElements:Collection<Element> = new Collection()<Element>;
-			var identity:Element;
+		static createGroup(generatingSet:Collection<Element>, operation:GroupOperation):Group {
+			var groupElements:Collection<Element> = new Collection<Element>();
+			var identity:Element = null;
 			var temp:Element;
+			var g:Group;
+
+			// Enforce unique elements in set.
+			for (var i = 0; i < generatingSet.size(); i++)
+			{
+				if (!groupElements.contains(generatingSet.get(i)))
+					groupElements.add(generatingSet.get(i));
+			}
 
 			// todo: ???
 			for (var i = 0; i < generatingSet.size(); i++) {
 				for (var j = 0; j < generatingSet.size(); j++) {
 					temp = operation(generatingSet.get(i), generatingSet.get(j));
-						groupElements.add(temp);
+					groupElements.add(temp);
 				}
 			}
 
 			// Determine if identity element exists/ what it is.
-			var identityFound:boolean = false;
 			for (var i = 0; i < groupElements.size(); i++) {
 				for (var j = 0; j < groupElements.size(); j++) {
 					if (operation(groupElements.get(i), groupElements.get(j)) != groupElements.get(j))
 						break;
+					if (j == groupElements.size() - 1)
+						if (!identity)
+							identity = groupElements.get(i);
+						else
+							return null; // more than one identity found.
 				}
-				if (identityFound != true) {
-					identity = groupElements.get()
-					identityFound = true;
-				}
-				else
-					return null; // more than one identity found.
 			}
 
 			// Determine if every element of the group is invertible.
-			var inverseFound:boolean = false;
-
 			for (var i = 0; i < groupElements.size(); i++) {
 				for (var j = 0; j < groupElements.size(); j++) {
-					if (operation(groupElements.get(i), groupElements.get(j)))
+					if (operation(groupElements.get(i), groupElements.get(j)) == identity)
+						break; // inverse found for element i.
+					if (i == groupElements.size() - 1)
+						return null; // inverse not found for element i -> not a valid group.
 				}
 			}
+
+			g = new Group(identity, operation, groupElements);
+
+			// Find group properties.
+			g.init();
+
+			return g;
 		}
 
 		operate(left:Element, right:Element):Element {
