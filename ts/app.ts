@@ -1,5 +1,6 @@
 /// <reference path="group.ts"/>
 /// <reference path="cayley_table.ts"/>
+/// <reference path="../third_party/jquery.d.ts"/>
 
 module group_app {
     class Background {
@@ -7,7 +8,7 @@ module group_app {
         constructor() {
 
             // create a group
-            var modulus:number = 10;
+            var modulus:number = 15;
 	        var identity:groups.Element = new groups.Element(0);
 
 	        console.log("ident set");
@@ -18,7 +19,7 @@ module group_app {
 	        };
 
 	        var elements:groups.Collection<groups.Element> = new groups.Collection<groups.Element>();
-	        for (var i = 0; i < 10; i++)
+	        for (var i = 0; i < 15; i++)
 	            elements.add(new groups.Element(i));
 
 	        console.log(elements.size());
@@ -27,6 +28,5 @@ module group_app {
 	        var table:groups.CayleyTable = new groups.CayleyTable(g);
         }
     }
-
 	var bG:Background = new Background();
 }

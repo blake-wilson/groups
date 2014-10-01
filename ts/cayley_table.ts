@@ -28,19 +28,68 @@ module groups {
 				row = document.createElement('tr');
 				row.style.height = "20px";
 				this.table.appendChild(row);
-				for (var j = 0; j < elements.size(); j++) {
+
+				for (var j = 0; j < elements.size(); j++)
+				{
+					if ((i == 0 && j == 0) || j == 0) {
+						row.onmouseover = function () {
+							this.style.backgroundColor = "#ddffdd"
+						};
+						row.onmouseleave = function () {
+							this.style.backgroundColor = "#ffffff"
+						};
+					}
+
+
 					col = document.createElement('td');
 					col.style.width = "20px";
 					col.style.textAlign = "center";
-					if ((j + i) % 2 == 0)
-						col.style.backgroundColor = "#dfdfdf";
-					else
-						col.style.backgroundColor = "#ffffff";
-					col.appendChild(document.createTextNode(this.g.operate(this.g.elements.get(j), this.g.elements.get(i)).value));
+					col.setAttribute("col", j.toString());
+					col.onmouseover = function() {
+						var col = this.getAttribute("col");
+						var tableNodes:NodeList = document.getElementById("cayley_table").childNodes;
+						var child:HTMLElement;
+
+						for (var i = 0; i < tableNodes.length; i++) {
+							child = <HTMLElement>tableNodes[i].childNodes[col];
+							if (child.getAttribute("col") == col)
+							{
+								child.style.backgroundColor = "#ddffdd";
+							}
+						}
+						this.style.backgroundColor = "#ddddff";
+					};
+					col.onmouseleave = function() {
+						var col = this.getAttribute("col");
+						var tableNodes:NodeList = document.getElementById("cayley_table").childNodes;
+						var child:HTMLElement;
+
+						for (var i = 0; i < tableNodes.length; i++)
+						{
+							child = <HTMLElement>tableNodes[i].childNodes[col];
+							if (child.getAttribute("col") == col)
+								child.style.backgroundColor = "transparent";
+						}
+					};
+					col.setAttribute("title", this.g.elements.get(i).value + "*" + this.g.elements.get(j).value);
+					col.appendChild(document.createTextNode(this.g.operate(this.g.elements.get(i), this.g.elements.get(j)).value));
 					row.appendChild(col);
 				}
 				this.table.appendChild(row);
 			}
 		}
+
+//		private highlightColumn() {
+//			var col = this.getAttribute("col");
+//			var tableNodes:NodeList = this.table.childNodes;
+//			var child:HTMLElement;
+//
+//			for (var i = 0; i < tableNodes.length; i++)
+//			{
+//				child = tableNodes[i];
+//				if (child.col == col)
+//					child.style.backgroundColor = "#ddffdd"
+//			}
+//		}
 	}
 }
