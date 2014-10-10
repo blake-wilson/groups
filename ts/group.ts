@@ -1,5 +1,3 @@
-
-
 module groups {
 
 	export class Collection<T> {
@@ -53,7 +51,7 @@ module groups {
 		private _isCyclic:boolean;
 		private _elements:Collection<Element>;
 		private _order:number;
-		private operation:GroupOperation;
+		private _operation:GroupOperation;
 		private _identity:Element;
 
 		public get isCyclic():boolean {
@@ -71,6 +69,9 @@ module groups {
 		public get elements():Collection<Element> {
 			return this._elements;
 		}
+		public get operation():GroupOperation {
+			return this._operation;
+		}
 
 		private init() {
 			this._isAbelian = this.checkAbelian();
@@ -79,12 +80,12 @@ module groups {
 		}
 
 		// Order of an element within the group
-		private eOrder(element:Element):number {
+		eOrder(element:Element):number {
 			var order:number;
-			var current:Element = element;
-			for (order = 1; !(current == this.identity) && order < this.elements.size(); order++)
+			var current:Element = new Element(element.value);
+			for (order = 1; !(current.value == this.identity.value) && order < this.elements.size(); order++)
 			{
-				current = this.operation(current, element);
+				current = this._operation(current, element);
 			}
 			return order;
 		}
@@ -94,7 +95,7 @@ module groups {
 			{
 				for (var j = 0; j < this.elements.size(); j++)
 				{
-					if (!(this.operation(this.elements.get(i), this.elements.get(j)) == (this.operation(this.elements.get(j), this.elements.get(i)))))
+					if (!(this._operation(this.elements.get(i), this.elements.get(j)).value == (this._operation(this.elements.get(j), this.elements.get(i)).value)))
 						return false;
 				}
 			}
@@ -113,7 +114,7 @@ module groups {
 		constructor(identity:Element, operation:GroupOperation, elements:Collection<Element>) {
 
 			this._identity = identity;
-			this.operation = operation;
+			this._operation = operation;
 			this._elements = elements;
 
 			// Find group properties
@@ -175,8 +176,8 @@ module groups {
 		}
 
 		operate(left:Element, right:Element):Element {
-				return this.operation(left, right);
-			}
+				return this._operation(left, right);
+		}
 
 		static getInverse(element:Element, G:Group) {
 
@@ -184,6 +185,18 @@ module groups {
 
 		// Group events
 		private onChanged() {
+		}
+
+		toString(): string {
+			var retStr = "{";
+			for (var i = 0; i < this.elements.size(); i++) {
+				retStr += this.elements.get(i).value;
+				if (i < this.elements.size() - 1)
+					retStr += ", ";
+			}
+			retStr += "}"
+
+			return retStr;
 		}
 	}
 }
