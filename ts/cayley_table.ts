@@ -17,7 +17,7 @@ module groups {
 		}
 
 
-		private updateTable(elements:Collection<Element>) {
+		private updateTable(elements:Elements) {
 			this.table.innerHTML = "";
 			this.table.border = "1px solid #000";
 
@@ -72,7 +72,7 @@ module groups {
 						}
 					};
 					col.setAttribute("title", this.g.elements.get(i).value + "*" + this.g.elements.get(j).value);
-					col.appendChild(document.createTextNode(this.g.operate(this.g.elements.get(i), this.g.elements.get(j)).value));
+					col.appendChild(this.g.eltRepr(this.g.operate(this.g.elements.get(i), this.g.elements.get(j))));
 					row.appendChild(col);
 				}
 				this.table.appendChild(row);
