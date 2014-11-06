@@ -6,11 +6,11 @@ module groups {
 
 	export class CayleyTable {
 
-		private g:Group;
+		private g:VisualGroup;
 
 		private table:HTMLTableElement;
 
-		constructor(g:Group) {
+		constructor(g:VisualGroup) {
 			this.g = g;
 			this.table = <HTMLTableElement>document.getElementById("cayley_table");
 			this.updateTable(g.elements);
@@ -71,7 +71,7 @@ module groups {
 								child.style.backgroundColor = "transparent";
 						}
 					};
-					col.setAttribute("title", this.g.elements.get(i).value + "*" + this.g.elements.get(j).value);
+					col.setAttribute("title", this.g.elements.get(i).getValue() + "*" + this.g.elements.get(j).getValue());
 					col.appendChild(this.g.eltRepr(this.g.operate(this.g.elements.get(i), this.g.elements.get(j))));
 					row.appendChild(col);
 				}

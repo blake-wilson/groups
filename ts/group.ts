@@ -92,6 +92,8 @@ module groups {
 		toString();
 
 		identity: T;
+
+		elements: Collection<T>;
 	}
 
 	export class Group implements IGroup<IElement> {
@@ -102,7 +104,6 @@ module groups {
 		private _elements:Elements;
 		private _generatingSet:Elements;
 		private _order:number;
-		private _operation:GroupOperation;
 		private _identity:IElement;
 
 		//optional function for customizing the look of elements.
@@ -134,9 +135,6 @@ module groups {
 		public get elements():Elements {
 			return this._elements;
 		}
-		public get operation():GroupOperation {
-			return this._operation;
-		}
 
 		public set elementVisual(elementVisual: ElementVisual) {
 			this._elementVisual = elementVisual;
@@ -158,7 +156,7 @@ module groups {
 			var current:IElement = new ConcreteElement(element.getValue());
 			for (order = 1; !(current.getValue() == this.identity.getValue()) && order < this.elements.size(); order++)
 			{
-				current = this._operation(current, element);
+				current = this.operate(current, element);
 			}
 			return order;
 		}
@@ -168,7 +166,7 @@ module groups {
 			{
 				for (var j = 0; j < this.elements.size(); j++)
 				{
-					if (!(this._operation(this.elements.get(i), this.elements.get(j)).getValue() == (this._operation(this.elements.get(j), this.elements.get(i)).getValue())))
+					if (!(this.operate(this.elements.get(i), this.elements.get(j)).getValue() == (this.operate(this.elements.get(j), this.elements.get(i)).getValue())))
 						return false;
 				}
 			}
@@ -187,8 +185,8 @@ module groups {
 		constructor(identity:IElement, operation:GroupOperation, elements:Elements) {
 
 			this._identity = identity;
-			this._operation = operation;
 			this._elements = elements;
+			this.operate = operation;
 
 			// Find group properties
 			this.init();
@@ -248,9 +246,7 @@ module groups {
 			return g;
 		}
 
-		operate(left:IElement, right:IElement):IElement {
-				return this._operation(left, right);
-		}
+		operate(left:IElement, right:IElement):IElement;
 
 		// If elements are added or removed, group must be regenerated from the generating set.
 		private regenerate() {
@@ -294,9 +290,15 @@ module groups {
 
 		 private _elements:Collection<VisualElement>;
 
+		 get elements():Collection<VisualElement> {
+			 return this._elements;
+		 }
+
 		eltRepr(e:VisualElement) {
 			return document.createElement("span").appendChild(document.createTextNode(e.getValue()));
 		}
+
+		operate(left:VisualElement, right:VisualElement):VisualElement;
 
 		repr():HTMLElement {
 			// div to store the contents of the HTML representations of each element. - no formatting applied.

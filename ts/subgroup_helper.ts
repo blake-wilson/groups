@@ -29,7 +29,7 @@ module groups {
 						break;
 				}
 				if (j != this.fullGroup.order)
-					this.subgroups.add(new Group(this.fullGroup.identity, this.fullGroup.operation,
+					this.subgroups.add(new Group(this.fullGroup.identity, this.fullGroup.operate,
 						this.generateGroup(this.fullGroup.elements.get(j)).elements));
 			}
 			return this.subgroups;
@@ -73,20 +73,20 @@ module groups {
 			return divisors;
 		}
 
-		private generateGroup(e:Element) {
-			var elements:Collection<Element> = new Collection<Element>();
+		private generateGroup(e:IElement) {
+			var elements:Collection<IElement> = new Collection<IElement>();
 
 			//todo: deep copy the element.
-			var orig:Element = new Element(e.value);
+			var orig:ConcreteElement = new ConcreteElement(e.getValue());
 
 			elements.add(this.fullGroup.identity);
 
-			while (e.value != this.fullGroup.identity.value) {
+			while (e.getValue() != this.fullGroup.identity.getValue()) {
 				elements.add(e);
 				e = this.fullGroup.operate(e, orig);
 			}
 
-			return new Group(this.fullGroup.identity, this.fullGroup.operation, elements);
+			return new Group(this.fullGroup.identity, this.fullGroup.operate, elements);
 		}
 	}
 }
