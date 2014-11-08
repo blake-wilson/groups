@@ -106,7 +106,6 @@ module group_app {
 			elements.add(new ConcreteElement(new utils.OrderedTriple(0, 1, 0)));
 			elements.add(new ConcreteElement(new utils.OrderedTriple(0,0,1)));
 
-
 			var operation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
 				var red = ((<utils.OrderedTriple>left.getValue()).x + (<utils.OrderedTriple>right.getValue()).x) % 3;
 				var green = ((<utils.OrderedTriple>left.getValue()).y + (<utils.OrderedTriple>right.getValue()).y) % 3;
@@ -116,14 +115,18 @@ module group_app {
 			};
 
 			g = VisualGroup.createGroup(elements, operation);
-			g.elementVisual = function (e:Element) {
+			g.visualize = function (e:VisualElement) {
 				var colorIntensities = [0,100,255];
 				//<div style="width:500px;height:100px
 				var repr = document.createElement("div");
-				repr.setAttribute("width", "20px");
-				repr.setAttribute("height", "20px");
-				repr.style.backgroundColor = "#" + this.red.toString(16) +
-					this.green.toString(16) + this.blue.toString(16);
+				repr.style.width = "20px";
+				repr.style.height = "20px";
+
+				var rVal = colorIntensities[e.getValue().x];
+				var gVal = colorIntensities[e.getValue().y];
+				var bVal = colorIntensities[e.getValue().z];
+
+				repr.style.backgroundColor =  new utils.OrderedTriple(rVal, gVal, bVal).toRGBHexString();
 
 				return repr;
 			};

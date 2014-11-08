@@ -61,10 +61,6 @@ module groups {
 			this._value = value;
 		}
 
-		public visualize():HTMLElement {
-			return null;
-		}
-
 		public toString():string {
 			return this._value.toString();
 		}
@@ -76,7 +72,6 @@ module groups {
 	}
 
 	export interface IVisualElement extends IElement {
-		visualize(): HTMLElement;
 	}
 
 	export interface GroupOperation {
@@ -331,14 +326,19 @@ module groups {
 			 return null;
 		 }
 
-		 eltRepr(e:VisualElement):Node {
-			return document.createElement("span").appendChild(document.createTextNode(e.getValue()));
+		 eltRepr(e:VisualElement):HTMLElement {
+			var htmlElement:HTMLElement = this.visualize(e);
+			 return htmlElement;
 		}
 
 		static createGroup(generatingSet:Elements, operation:GroupOperation): VisualGroup {
 			var g:IGroup<IElement> = Group.createGroup(generatingSet, operation);
 
 			return new VisualGroup(g.identity, g.operate, g.elements);
+		}
+
+		public visualize(e:VisualElement):HTMLElement {
+			 return null;
 		}
 
 		repr():HTMLElement {
@@ -349,7 +349,7 @@ module groups {
 				// use element visualizing function if one was specified.
 
 				//todo: see if cast can be eliminated
-				aggregator.appendChild((<VisualElement>this.elements.get(i)).visualize());
+				aggregator.appendChild(this.visualize((<VisualElement>this.elements.get(i))));
 			}
 
 			return aggregator;

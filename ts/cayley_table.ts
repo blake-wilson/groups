@@ -40,7 +40,6 @@ module groups {
 						};
 					}
 
-
 					col = document.createElement('td');
 					col.style.width = "20px";
 					col.style.textAlign = "center";
@@ -71,10 +70,22 @@ module groups {
 								child.style.backgroundColor = "transparent";
 						}
 					};
-					col.setAttribute("title", this.g.elements.get(i).getValue() + "*" + this.g.elements.get(j).getValue());
 
 					//todo: Get rid of these casts......
-					col.appendChild(this.g.eltRepr(this.g.operate(<VisualElement>(this.g.elements.get(i)), <VisualElement>(this.g.elements.get(j)))));
+					if (i != 0 && j != 0) {
+						col.setAttribute("title", this.g.elements.get(i).getValue() + "*" + this.g.elements.get(j).getValue());
+						col.appendChild(this.g.eltRepr(this.g.operate(<VisualElement>(this.g.elements.get(i)), <VisualElement>(this.g.elements.get(j)))));
+					}
+					else {
+						if (j == 0) {
+							col.setAttribute("title", this.g.elements.get(i).getValue());
+							col.appendChild(this.g.eltRepr(<VisualElement>(this.g.elements.get(i))));
+						}
+						else {
+							col.setAttribute("title", this.g.elements.get(j).getValue());
+							col.appendChild(this.g.eltRepr(<VisualElement>(this.g.elements.get(j))));
+						}
+					}
 					row.appendChild(col);
 				}
 				this.table.appendChild(row);

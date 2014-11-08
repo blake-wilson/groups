@@ -8,6 +8,32 @@ module utils {
 
 	export class OrderedTriple {
 		constructor(public x:number, public y:number, public z:number) {}
+		toString():string {
+			return "(" + this.x.toString() + ", " + this.y.toString() + ", " + this.z.toString() + ")";
+		}
+
+		toRGBHexString():string {
+			var hex_alphabet = "0123456789ABCDEF";
+			var hex = "#";
+			var char1, char2;
+
+			//red comp
+			char1 = this.x / 16;
+			char2 = this.x % 16;
+			hex += hex_alphabet.charAt(char1) + hex_alphabet.charAt(char2);
+
+			//green comp
+			char1 = this.y / 16;
+			char2 = this.y % 16;
+			hex += hex_alphabet.charAt(char1) + hex_alphabet.charAt(char2);
+
+			//blue comp
+			char1 = this.z / 16;
+			char2 = this.z % 16;
+			hex += hex_alphabet.charAt(char1) + hex_alphabet.charAt(char2);
+
+			return hex;
+		}
 	}
 
 	export function isEqual(x, y) {
