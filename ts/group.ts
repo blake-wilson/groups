@@ -24,7 +24,10 @@ module groups {
 		}
 
 		contains(value: T):boolean {
-			return this.items.indexOf(value) > -1;
+			for (var i = 0; i < this.items.length; i++) {
+				if (utils.isEqual(value, this.items[i]))
+					return true;
+			}
 		}
 	}
 
@@ -61,6 +64,10 @@ module groups {
 		public visualize():HTMLElement {
 			return null;
 		}
+
+		public toString():string {
+			return this._value.toString();
+		}
 	}
 
 	export interface IElement {
@@ -84,10 +91,10 @@ module groups {
 		(e1: IElement, e2: IElement): boolean;
 	}
 
-	export interface IGroup<T> extends Collection<T> {
+	export interface IGroup<T> {
 		operate(left:T, right:T):T;
 
-		compare(left:T, right:T);
+		isEqual(left:T, right:T);
 
 		toString();
 
@@ -112,9 +119,14 @@ module groups {
 		//function for comparing elements. Default: e1.value == e2.value
 		private _elementCompare:ElementComparer;
 
+		operate(left:IElement, right:IElement) {
+			// implementation provided by user.
+			return null;
+		}
+
 		// collection object implementation
 		add(e:IElement) {
-			if (!contains(e)) {
+			if (!this.contains(e)) {
 				this._generatingSet.add(e);
 				this.regenerate();
 			}
@@ -192,8 +204,34 @@ module groups {
 			this.init();
 		}
 
+		static generateGroup(operation:GroupOperation, generatingSet:Elements) {
+			var temp:IElement;
+			var newElts:Elements = new Elements();
+
+			// if generation does not change the size of the generating set, return.
+			var genSetSize = generatingSet.size();
+
+			for (var i = 0; i < generatingSet.size(); i++) {
+				for (var j = 0; j < generatingSet.size(); j++) {
+					temp = operation(generatingSet.get(i), generatingSet.get(j));
+					if (!generatingSet.contains(temp) && !newElts.contains(temp))
+						newElts.add(temp);
+				}
+			}
+
+			// Add the new elements to the generating set and re-generate.
+			for (var i = 0; i < newElts.size(); i++) {
+				generatingSet.add(newElts.get(i));
+			}
+
+			if (generatingSet.size() != genSetSize) {
+				generatingSet = this.generateGroup(operation, generatingSet);
+			}
+			return generatingSet;
+		}
+
 		// Return null if the group cannot be generated.
-		static createGroup(generatingSet:Elements, operation:GroupOperation):Group {
+		static createGroup(generatingSet:Elements, operation:GroupOperation):IGroup<IElement> {
 			var groupElements:Elements = new Elements();
 			var identity:IElement = null;
 			var temp:IElement;
@@ -206,34 +244,32 @@ module groups {
 					groupElements.add(generatingSet.get(i));
 			}
 
-			// todo: ???
-			for (var i = 0; i < generatingSet.size(); i++) {
-				for (var j = 0; j < generatingSet.size(); j++) {
-					temp = operation(generatingSet.get(i), generatingSet.get(j));
-					if (!groupElements.contains(temp))
-						groupElements.add(temp);
-				}
-			}
+			this.generateGroup(operation, groupElements);
 
 			// Determine if identity element exists/ what it is.
 			for (var i = 0; i < groupElements.size(); i++) {
 				for (var j = 0; j < groupElements.size(); j++) {
-					if (operation(groupElements.get(i), groupElements.get(j)).getValue() != groupElements.get(j).getValue())
+					if (!utils.isEqual(operation(groupElements.get(i), groupElements.get(j)).getValue(), groupElements.get(j).getValue()) ||
+						!utils.isEqual(operation(groupElements.get(j), groupElements.get(i)).getValue(), groupElements.get(j).getValue()))
 						break;
 					if (j == groupElements.size() - 1)
 						if (!identity)
 							identity = groupElements.get(i);
 						else
-							return null; // more than one identity found.
+							return null;  // more than one identity found.
 				}
+			}
+
+			if (identity == null) {
+				return null;  //identity not found.
 			}
 
 			// Determine if every element of the group is invertible.
 			for (var i = 0; i < groupElements.size(); i++) {
 				for (var j = 0; j < groupElements.size(); j++) {
-					if (operation(groupElements.get(i), groupElements.get(j)).getValue() == identity.getValue())
+					if (utils.isEqual(operation(groupElements.get(i), groupElements.get(j)).getValue(), identity.getValue()))
 						break; // inverse found for element i.
-					if (i == groupElements.size() - 1)
+					if ((i == groupElements.size() - 1) && (j == groupElements.size() - 1))
 						return null; // inverse not found for element i -> not a valid group.
 				}
 			}
@@ -245,8 +281,6 @@ module groups {
 
 			return g;
 		}
-
-		operate(left:IElement, right:IElement):IElement;
 
 		// If elements are added or removed, group must be regenerated from the generating set.
 		private regenerate() {
@@ -263,15 +297,15 @@ module groups {
 
 		contains(e: IElement) {
 			for (var i = 0; i < this.elements.size(); i++) {
-				if (this.compare(e, this.elements.get(i))) {
+				if (this.isEqual(e, this.elements.get(i))) {
 					return true;
 				}
 			}
 			return false;
 		}
 
-		compare (e1: IElement, e2: IElement): boolean {
-			return this._elementCompare(e1,e2);
+		isEqual (e1: IElement, e2: IElement): boolean {
+			return utils.isEqual(e1,e2);
 		}
 
 		toString() {
@@ -286,19 +320,26 @@ module groups {
 		}
 	}
 
-	 export class VisualGroup extends Group<VisualElement> {
+	 export class VisualGroup extends Group {
 
-		 private _elements:Collection<VisualElement>;
-
-		 get elements():Collection<VisualElement> {
-			 return this._elements;
+		 public constructor(identity:IElement, operation:GroupOperation, elts:Elements) {
+				super(identity, operation, elts);
 		 }
 
-		eltRepr(e:VisualElement) {
+		 operate(left:VisualElement, right:VisualElement) {
+			 // implementation provided by user.
+			 return null;
+		 }
+
+		 eltRepr(e:VisualElement):Node {
 			return document.createElement("span").appendChild(document.createTextNode(e.getValue()));
 		}
 
-		operate(left:VisualElement, right:VisualElement):VisualElement;
+		static createGroup(generatingSet:Elements, operation:GroupOperation): VisualGroup {
+			var g:IGroup<IElement> = Group.createGroup(generatingSet, operation);
+
+			return new VisualGroup(g.identity, g.operate, g.elements);
+		}
 
 		repr():HTMLElement {
 			// div to store the contents of the HTML representations of each element. - no formatting applied.
@@ -306,7 +347,9 @@ module groups {
 
 			for (var i = 0; i < this.elements.size(); i++) {
 				// use element visualizing function if one was specified.
-				aggregator.appendChild(this._elements.get(i).visualize());
+
+				//todo: see if cast can be eliminated
+				aggregator.appendChild((<VisualElement>this.elements.get(i)).visualize());
 			}
 
 			return aggregator;

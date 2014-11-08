@@ -72,7 +72,9 @@ module groups {
 						}
 					};
 					col.setAttribute("title", this.g.elements.get(i).getValue() + "*" + this.g.elements.get(j).getValue());
-					col.appendChild(this.g.eltRepr(this.g.operate(this.g.elements.get(i), this.g.elements.get(j))));
+
+					//todo: Get rid of these casts......
+					col.appendChild(this.g.eltRepr(this.g.operate(<VisualElement>(this.g.elements.get(i)), <VisualElement>(this.g.elements.get(j)))));
 					row.appendChild(col);
 				}
 				this.table.appendChild(row);

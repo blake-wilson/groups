@@ -6,7 +6,10 @@
 module group_app {
 
 	import Group = groups.Group;
-	import Element = groups.Element;
+	import VisualGroup = groups.VisualGroup;
+	import IElement = groups.IElement;
+	import VisualElement = groups.VisualElement;
+	import ConcreteElement = groups.ConcreteElement;
 	import Elements = groups.Elements;
 	import Collection = groups.Collection;
 	import SubgroupHelper = groups.SubgroupHelper;
@@ -26,17 +29,17 @@ module group_app {
         constructor() {
             // create a group
             var modulus:number = 12;
-	        var identity:groups.Element = new groups.Element(0);
+	        var identity:groups.ConcreteElement = new groups.ConcreteElement(0);
 
 	        console.log("ident set");
 
-	        var operation:groups.GroupOperation = function(left:groups.Element, right:groups.Element) {
-		        return new groups.Element((left.value + right.value) % modulus);
+	        var operation:groups.GroupOperation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
+		        return new groups.ConcreteElement((left.getValue() + right.getValue()) % modulus);
 	        };
 
-	        var elements:groups.Collection<groups.Element> = new groups.Collection<groups.Element>();
+	        var elements:groups.Collection<ConcreteElement> = new groups.Collection<ConcreteElement>();
 	        for (var i = 0; i < 12; i++)
-	            elements.add(new groups.Element(i));
+	            elements.add(new ConcreteElement(i));
 
 	        console.log(elements.size());
 	        this.g = new Group(identity, operation, elements);
@@ -62,7 +65,7 @@ module group_app {
 
 			for (var i = 0; i < this.subgroups.size(); i++) {
 				listItem = document.createElement("li");
-				groupText = document.createTextNode(this.subgroups.get(i).repr());
+				groupText = document.createTextNode(this.subgroups.get(i).toString());
 
 				listItem.appendChild(groupText);
 				this.subgroupsList.appendChild(listItem);
@@ -93,33 +96,28 @@ module group_app {
 			this.propertiesList.appendChild(propertyItem);
 		}
 
-		private colorGroupSample(): Group {
-			var g: Group;
-			var steps = [100,200,255];
+		private colorGroupSample(): VisualGroup {
+			var g: VisualGroup;
+			var steps = [0,1,2];
 			var elements:Elements = new Elements();
 			var pointsArray = [];
 
-			for (var i = 0; i < 3; i++) {
-				for (var j = 0; j < 3; j++) {
-					if (j == 0)
-						elements.add(new Element(new utils.RGB(steps[j], 0, 0)));
-					else if (j == 1)
-						elements.add(new Element(new utils.RGB(0, steps[j], 0)));
-					else if (j == 2)
-						elements.add(new Element(new utils.RGB(0,0,steps[j])));
-				}
-			}
+			elements.add(new ConcreteElement(new utils.OrderedTriple(1, 0, 0)));
+			elements.add(new ConcreteElement(new utils.OrderedTriple(0, 1, 0)));
+			elements.add(new ConcreteElement(new utils.OrderedTriple(0,0,1)));
 
-			var operation = function(left:groups.Element, right:groups.Element) {
-				var red = (<utils.RGB>left.value).red + (<utils.RGB>right.value).red % 255;
-				var green = (<utils.RGB>left.value).green + (<utils.RGB>right.value).green % 255;
-				var blue = (<utils.RGB>left.value).blue + (<utils.RGB>right.value).blue % 255;
 
-				return new groups.Element(new utils.RGB(red, green, blue));
+			var operation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
+				var red = ((<utils.OrderedTriple>left.getValue()).x + (<utils.OrderedTriple>right.getValue()).x) % 3;
+				var green = ((<utils.OrderedTriple>left.getValue()).y + (<utils.OrderedTriple>right.getValue()).y) % 3;
+				var blue = ((<utils.OrderedTriple>left.getValue()).z + (<utils.OrderedTriple>right.getValue()).z) % 3;
+
+				return new groups.ConcreteElement(new utils.OrderedTriple(red, green, blue));
 			};
 
-			g = Group.createGroup(elements, operation);
+			g = VisualGroup.createGroup(elements, operation);
 			g.elementVisual = function (e:Element) {
+				var colorIntensities = [0,100,255];
 				//<div style="width:500px;height:100px
 				var repr = document.createElement("div");
 				repr.setAttribute("width", "20px");
