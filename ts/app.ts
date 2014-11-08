@@ -119,8 +119,10 @@ module group_app {
 				var colorIntensities = [0,100,255];
 				//<div style="width:500px;height:100px
 				var repr = document.createElement("div");
+
 				repr.style.width = "20px";
 				repr.style.height = "20px";
+				repr.style.margin = "2px";
 
 				var rVal = colorIntensities[e.getValue().x];
 				var gVal = colorIntensities[e.getValue().y];

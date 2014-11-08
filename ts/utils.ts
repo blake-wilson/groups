@@ -34,6 +34,10 @@ module utils {
 
 			return hex;
 		}
+
+		toRGBAHexString(alpha:number):string {
+			return "rgba(" + this.x + "," + this.y + "," + this.z + "," + alpha + ")";
+		}
 	}
 
 	export function isEqual(x, y) {

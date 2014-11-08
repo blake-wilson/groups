@@ -6,23 +6,41 @@
     <title></title>
 </head>
 <body>
-    <table id="cayley_table">
-    </table>
+<div style="width: 100%; overflow: hidden;">
 
-    <p>Enter an operation below
+    <div style="float: left; margin-right: 60px;">
+
+        <table id="cayley_table">
+        </table>
+
+    </div>
+
+    <div>
+        <input type="checkbox" id="graphical_table" value="graphical">
+        <label for="graphical_table">Graphical</label>.
         <br />
-        e.g.: return new groups.Element((left.value + right.value) % modulus
-    </p>
-    <input type="text" id="operation">
 
-    <h2>Subgroups</h2>
-    <ul id="subgroupsList">
-        <!-- subgroups section -->
-    </ul>
-    <h2>Group Properties</h2>
-    <ul id="propertiesList">
-        <!-- properties list -->
-    </ul>
+        <p>Enter an operation below
+            <br />
+            e.g.: return new groups.Element((left.value + right.value) % modulus
+        </p>
+        <input type="text" id="operation">
+
+        <h2>Subgroups</h2>
+        <ul id="subgroupsList">
+            <!-- subgroups section -->
+        </ul>
+        <h2>Group Properties</h2>
+        <ul id="propertiesList">
+            <!-- properties list -->
+        </ul>
+
+
+    </div>
+
     <script src="../js/app.js"></script>
+
+</div>
+
 </body>
 </html>
