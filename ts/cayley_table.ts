@@ -13,6 +13,7 @@ module groups {
 		private table:HTMLTableElement;
 
 		toggleReprCheckbox:HTMLInputElement;
+		opWindow:HTMLElement;
 
 		nRows:number = 0;
 		private elementsResults:Collection<VisualElement>;
@@ -33,6 +34,7 @@ module groups {
 			//bind event listeners
 			this.refreshSignal = new Signal();
 			this.toggleReprCheckbox = <HTMLInputElement>document.getElementById("graphical_table");
+			this.opWindow = document.getElementById("op_window");
 			this.toggleReprCheckbox.checked = true;
 			this.addListeners();
 		}
@@ -41,13 +43,38 @@ module groups {
 			this.refreshSignal.add( () => {
 				this.toggleVisualization();
 			});
-
 			this.toggleReprCheckbox.addEventListener("click", () => {this.refreshSignal.dispatch()});
 		}
 
 		private toggleVisualization() {
 			this.showVisual = (<HTMLInputElement>document.getElementById("graphical_table")).checked;
 			this.displayGroup();
+		}
+
+		private updateOpWindow(operand1:VisualElement, operand2:VisualElement, res:VisualElement) {
+
+			this.opWindow.innerHTML = "";
+			var cell:HTMLElement = document.createElement("td");
+
+			cell.appendChild(this.drawTableCell(operand1));
+			this.opWindow.appendChild(cell);
+			cell = document.createElement("td");
+
+			cell.appendChild(document.createTextNode(" X "));
+			this.opWindow.appendChild(cell);
+			cell = document.createElement("td");
+
+			cell.appendChild(this.drawTableCell(operand2));
+			this.opWindow.appendChild(cell);
+			cell = document.createElement("td");
+
+			cell.appendChild(document.createTextNode(" = "));
+			this.opWindow.appendChild(cell);
+			cell = document.createElement("td");
+
+
+			cell.appendChild(this.drawTableCell(res));
+			this.opWindow.appendChild(cell);
 		}
 
 		displayGroup() {
@@ -123,11 +150,14 @@ module groups {
 					col.setAttribute("row", i.toString());
 					col.setAttribute("col", j.toString());
 
+					var self:CayleyTable = this;
+
 					col.onmouseover = function() {
 						var col = this.getAttribute("col");
 						var row = this.getAttribute("row");
 
 						var tableNodes:NodeList = document.getElementById("cayley_table").childNodes;
+
 						var child:HTMLElement;
 
 						for (var i = 0; i < tableNodes.length; i++) {
@@ -148,6 +178,14 @@ module groups {
 							(<HTMLElement>tableNodes[row].childNodes[i]).style.backgroundColor = CayleyTable.sameRowColHighlightColor;
 						}
 
+
+						var operand1, operand2:VisualElement;
+						operand1 = self.elementsResults.get(row * self.nRows);
+						operand2 = self.elementsResults.get(col);
+						var res:VisualElement = self.elementsResults.get((+row) * self.nRows + (+col));
+
+						self.updateOpWindow(operand1, operand2, res);
+
 						this.style.backgroundColor = "transparent";
 					};
 					col.onmouseleave = function() {
@@ -166,7 +204,12 @@ module groups {
 						}
 					};
 
-					this.elementsResults.add(this.g.operate(<VisualElement>(this.g.elements.get(i)), <VisualElement>(this.g.elements.get(j))));
+					if (i != 0 && j != 0)
+						this.elementsResults.add(this.g.operate(<VisualElement>(this.g.elements.get(i)), <VisualElement>(this.g.elements.get(j))));
+					else if (i == 0)
+						this.elementsResults.add(<VisualElement>(this.g.elements.get(j)));
+					else // j = 0
+						this.elementsResults.add(<VisualElement>(this.g.elements.get(i)));
 
 					row.appendChild(col);
 				}

@@ -35,7 +35,7 @@ module utils {
 			return hex;
 		}
 
-		toRGBAHexString(alpha:number):string {
+		toRGBACSSHexString(alpha:number):string {
 			return "rgba(" + this.x + "," + this.y + "," + this.z + "," + alpha + ")";
 		}
 	}
