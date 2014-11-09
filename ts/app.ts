@@ -102,6 +102,7 @@ module group_app {
 		private prepPromptColor() {
 			if (!this.promptHidden) {
 				this.prompts.innerHTML = "";
+				this.promptHidden = true;
 			}
 		}
 
@@ -129,9 +130,6 @@ module group_app {
 				text.appendChild(content);
 				return text;
 			};
-
-			console.log(elements.size());
-
 
 			return g;
 		}

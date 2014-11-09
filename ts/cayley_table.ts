@@ -180,11 +180,16 @@ module groups {
 
 
 						var operand1, operand2:VisualElement;
-						operand1 = self.elementsResults.get(row * self.nRows);
-						operand2 = self.elementsResults.get(col);
-						var res:VisualElement = self.elementsResults.get((+row) * self.nRows + (+col));
+						if (row != 0 && col != 0) {
+							operand1 = self.elementsResults.get(row * self.nRows);
+							operand2 = self.elementsResults.get(col);
+							var res:VisualElement = self.elementsResults.get((+row) * self.nRows + (+col));
 
-						self.updateOpWindow(operand1, operand2, res);
+							self.updateOpWindow(operand1, operand2, res);
+						}
+						else {
+							self.opWindow.innerHTML = "";
+						}
 
 						this.style.backgroundColor = "transparent";
 					};
