@@ -16,7 +16,7 @@ module group_app {
 
 	class Background {
 
-		private g:Group;
+		private g:VisualGroup;
 
 		//HTML Elements
 		private subgroupsList:HTMLElement;
@@ -26,37 +26,115 @@ module group_app {
 		private subgroups: Collection<Group>;
 		private helper:SubgroupHelper;
 
+		private predefinedGroups:HTMLSelectElement;
+
+		private table:groups.CayleyTable;
+
+		// textbox for user input - not visible by default.
+		private promptText:HTMLInputElement;
+		private promptHidden:boolean = true;
+
+		private prompts:HTMLElement;
+
         constructor() {
-            // create a group
-            var modulus:number = 12;
-	        var identity:groups.ConcreteElement = new groups.ConcreteElement(0);
+	        this.predefinedGroups = <HTMLSelectElement>document.getElementById("pre_def_groups");
 
-	        console.log("ident set");
+	        var _self = this;
+	        this.predefinedGroups.addEventListener("change", () => {
+		        _self.switchGroups();
+	        });
 
-	        var operation:groups.GroupOperation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
-		        return new groups.ConcreteElement((left.getValue() + right.getValue()) % modulus);
-	        };
+	        //this.table = new groups.CayleyTable(this.colorGroupSample());
 
-	        var elements:groups.Collection<ConcreteElement> = new groups.Collection<ConcreteElement>();
-	        for (var i = 0; i < 12; i++)
-	            elements.add(new ConcreteElement(i));
+	        //this.helper = new SubgroupHelper(this.g);
 
-	        console.log(elements.size());
-	        this.g = new Group(identity, operation, elements);
-
-	        //var table:groups.CayleyTable = new groups.CayleyTable(this.g);
-			var table:groups.CayleyTable = new groups.CayleyTable(this.colorGroupSample());
-
-	        this.helper = new SubgroupHelper(this.g);
-
-	        this.subgroups = this.helper.calcSubgroups();
+	        //this.subgroups = this.helper.calcSubgroups();
 
 	        this.subgroupsList = document.getElementById("subgroupsList");
 	        this.propertiesList = document.getElementById("propertiesList");
 
-	        this.displaySubgroups();
-	        this.displayGroupProperties();
+	        //this.displaySubgroups();
+	       // this.displayGroupProperties();
+	        this.prompts = document.getElementById("prompts");
+	        this.promptText = document.createElement("input");
+
+	        this.promptText.addEventListener("change", () => {
+		        _self.switchGroups();
+	        });
+
+	        this.switchGroups();
         }
+
+		private switchGroups() {
+			var selectedVal = this.predefinedGroups.value;
+
+			switch(selectedVal) {
+				case "1":
+					this.prepPromptIntModN();
+					var modulus = this.promptText.value;
+					this.g = this.intModNExample(+modulus);
+					this.table = new groups.CayleyTable(this.g);
+					break;
+				case "2":
+					this.prepPromptColor();
+					this.g = this.colorGroupSample();
+					this.table = new groups.CayleyTable(this.g);
+					break;
+				default:
+					break;
+			}
+
+			// common for all groups
+			this.helper = new SubgroupHelper(this.g);
+			this.subgroups = this.helper.calcSubgroups();
+			this.displaySubgroups();
+			this.displayGroupProperties();
+		}
+
+		private prepPromptIntModN() {
+			if (this.promptHidden) {
+				this.prompts.appendChild(this.promptText);
+				this.promptText.value = "10";
+				this.promptHidden = false;
+			}
+		}
+
+		private prepPromptColor() {
+			if (!this.promptHidden) {
+				this.prompts.innerHTML = "";
+			}
+		}
+
+
+		private intModNExample(modulus:number):VisualGroup {
+			var modulus:number = modulus;
+
+			var g:VisualGroup;
+
+			var identity:groups.ConcreteElement = new groups.ConcreteElement(0);
+
+			var operation:groups.GroupOperation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
+				return new groups.ConcreteElement((left.getValue() + right.getValue()) % modulus);
+			};
+
+			var elements:groups.Collection<ConcreteElement> = new groups.Collection<ConcreteElement>();
+			for (var i = 0; i < modulus; i++)
+				elements.add(new ConcreteElement(i));
+
+			g = new VisualGroup(identity, operation, elements);
+
+			g.visualize = function (e:VisualElement) {
+				var text:HTMLElement = document.createElement("span");
+				var content:Text = document.createTextNode(e.toString());
+				text.appendChild(content);
+				return text;
+			};
+
+			console.log(elements.size());
+
+
+			return g;
+		}
 
 		private displaySubgroups() {
 			this.subgroupsList.innerHTML = "";
@@ -97,7 +175,8 @@ module group_app {
 		}
 
 		private colorGroupSample(): VisualGroup {
-			var g: VisualGroup;
+			var g:VisualGroup;
+
 			var steps = [0,1,2];
 			var elements:Elements = new Elements();
 			var pointsArray = [];
