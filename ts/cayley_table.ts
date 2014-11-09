@@ -1,10 +1,12 @@
 /// <reference path="group.ts"/>
 /// <reference path="Signal.ts" />
+/// <reference path="utils.ts" />
 
 module groups {
 
 	// Graphical way to represent Cayley Table in HTML
 
+	import Collection = utils.Collection;
 
 	export class CayleyTable {
 

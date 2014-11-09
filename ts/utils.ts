@@ -1,3 +1,40 @@
+// copyright info listed below for combinations.
+
+/**
+ * Copyright 2012 Akseli Palén.
+ * Created 2012-07-15.
+ * Licensed under the MIT license.
+ *
+ * <license>
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * </lisence>
+ *
+ * Implements functions to calculate combinations of elements in JS Arrays.
+ *
+ * Functions:
+ *   k_combinations(set, k) -- Return all k-sized combinations in a set
+ *   combinations(set) -- Return all combinations of the set
+ */
+
+
 module utils {
 
 	export class RGB {
@@ -73,5 +110,103 @@ module utils {
 			// allows x[ p ] to be set to undefined
 		}
 		return true;
+	}
+
+	export class Collection<T> {
+		private items: Array<T>;
+
+		constructor() {
+			this.items = [];
+		}
+
+		size(): number {
+			return this.items.length;
+		}
+
+		add(value: T): void {
+			this.items.push(value);
+		}
+
+		remove(index: number): void {
+			this.items.splice(index, 1);
+		}
+
+		get(index: number): T {
+			return this.items[index];
+		}
+
+		contains(value: T):boolean {
+			for (var i = 0; i < this.items.length; i++) {
+				if (utils.isEqual(value, this.items[i]))
+					return true;
+			}
+		}
+
+		slice(start:number, end:number = this.items.length):Collection<T> {
+			var temp:Collection<T> = new Collection<T>();
+			temp.items = this.items.slice(start, end);
+			return temp;
+		}
+
+		concat(other:Collection<T>):Collection<T> {
+			var temp:Collection<T> = new Collection<T>();
+
+			//todo: do I really have to copy the contents of the method's own object....
+			for (var i = 0; i < this.items.length; i++)  {
+				temp.add(this.items[i]);
+			}
+			for (var i = 0; i < other.size(); i++) {
+				temp.add(other.get(i));
+			}
+			return temp;
+		}
+	}
+
+	export class Combinations<T> {
+		private collection:Collection<T>;
+		private setSize:number;
+
+		constructor(set:Collection<T>, setSize:number) {
+			this.collection = set;
+			this.setSize = setSize;
+		}
+
+		k_combinations(set:Collection<T>, k:number):Collection<Collection<T>> {
+			var combs, tailcombs: Collection<Collection<T>>;
+			var head:Collection<T>;
+
+			var i, j: number;
+
+			if (k > set.size() || k <= 0) {
+				return new Collection<Collection<T>>();
+			}
+
+			if (k == set.size()) {
+				var collection:Collection<Collection<T>> = new Collection<Collection<T>>();
+				collection.add(set);
+				return collection;
+			}
+
+			if (k == 1) {
+				combs = new Collection<Collection<T>>();
+
+				for (i = 0; i < set.size(); i++) {
+					var tmp = new Collection<T>();
+					tmp.add(set.get(i));
+					combs.add(tmp);
+				}
+				return combs;
+			}
+
+			combs = new Collection<Collection<T>>();
+			for (i = 0; i < set.size() - k + 1; i++) {
+				head = set.slice(i, i+1);
+				tailcombs = this.k_combinations(set.slice(i + 1), k - 1);
+				for (j = 0; j < tailcombs.size(); j++) {
+					combs.add(head.concat(tailcombs.get(j)));
+				}
+			}
+			return combs;
+		}
 	}
 }

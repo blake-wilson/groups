@@ -11,8 +11,9 @@ module group_app {
 	import VisualElement = groups.VisualElement;
 	import ConcreteElement = groups.ConcreteElement;
 	import Elements = groups.Elements;
-	import Collection = groups.Collection;
 	import SubgroupHelper = groups.SubgroupHelper;
+
+	import Collection = utils.Collection;
 
 	class Background {
 
@@ -118,7 +119,7 @@ module group_app {
 				return new groups.ConcreteElement((left.getValue() + right.getValue()) % modulus);
 			};
 
-			var elements:groups.Collection<ConcreteElement> = new groups.Collection<ConcreteElement>();
+			var elements:Collection<ConcreteElement> = new Collection<ConcreteElement>();
 			for (var i = 0; i < modulus; i++)
 				elements.add(new ConcreteElement(i));
 

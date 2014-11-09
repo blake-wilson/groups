@@ -1,35 +1,8 @@
+/// <reference path="utils.ts" />
+
 module groups {
 
-	export class Collection<T> {
-		private items: Array<T>;
-
-		constructor() {
-			this.items = [];
-		}
-
-		size(): number {
-			return this.items.length;
-		}
-
-		add(value: T): void {
-			this.items.push(value);
-	    }
-
-		remove(index: number): void {
-			this.items.splice(index, 1);
-		}
-
-		get(index: number): T {
-			return this.items[index];
-		}
-
-		contains(value: T):boolean {
-			for (var i = 0; i < this.items.length; i++) {
-				if (utils.isEqual(value, this.items[i]))
-					return true;
-			}
-		}
-	}
+	import Collection = utils.Collection;
 
 	export class Elements extends Collection<IElement> {
 	}
@@ -161,7 +134,7 @@ module groups {
 		eOrder(element:IElement):number {
 			var order:number;
 			var current:IElement = new ConcreteElement(element.getValue());
-			for (order = 1; !(current.getValue() == this.identity.getValue()) && order < this.elements.size(); order++)
+			for (order = 1; !(this.isEqual(current.getValue(), this.identity.getValue())) && order < this.elements.size(); order++)
 			{
 				current = this.operate(current, element);
 			}
@@ -173,7 +146,7 @@ module groups {
 			{
 				for (var j = 0; j < this.elements.size(); j++)
 				{
-					if (!(this.operate(this.elements.get(i), this.elements.get(j)).getValue() == (this.operate(this.elements.get(j), this.elements.get(i)).getValue())))
+					if (!this.isEqual(this.operate(this.elements.get(i), this.elements.get(j)).getValue(), (this.operate(this.elements.get(j), this.elements.get(i)).getValue())))
 						return false;
 				}
 			}

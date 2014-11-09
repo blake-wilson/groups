@@ -1,12 +1,15 @@
 /// <reference path="group.ts"/>
+/// <reference path="utils.ts" />
 
 module groups {
 
 	import Group = groups.Group;
+	import Collection = utils.Collection;
+
 	export class SubgroupHelper {
 
 		private fullGroup:groups.Group;
-		private subgroups:groups.Collection<Group>;
+		private subgroups:Collection<Group>;
 
 		constructor(g:groups.Group) {
 			this.fullGroup = g;
@@ -16,6 +19,9 @@ module groups {
 		calcSubgroups() {
 			if (this.fullGroup.isCyclic) {
 				this.calcSubgroupsCyclic();
+			}
+			else {
+				//todo: implement non-cyclic subgroup finding :/
 			}
 			return this.subgroups;
 		}
