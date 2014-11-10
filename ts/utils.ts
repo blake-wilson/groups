@@ -34,7 +34,6 @@
  *   combinations(set) -- Return all combinations of the set
  */
 
-
 module utils {
 
 	export class RGB {
@@ -77,6 +76,14 @@ module utils {
 		}
 	}
 
+	export function contains(collection: Collection<Comparable>, value:Comparable) {
+		for (var i = 0; i < collection.size(); i++) {
+			if (value.equals(collection.get(i)))
+				return true;
+		}
+		return false;
+	}
+
 	export function isEqual(x, y) {
 		if ( x === y ) return true;
 		// if both x and y are null or undefined and exactly the same
@@ -112,6 +119,10 @@ module utils {
 		return true;
 	}
 
+	export interface Comparable {
+		equals(other: Comparable): boolean;
+	}
+
 	export class Collection<T> {
 		private items: Array<T>;
 
@@ -133,13 +144,6 @@ module utils {
 
 		get(index: number): T {
 			return this.items[index];
-		}
-
-		contains(value: T):boolean {
-			for (var i = 0; i < this.items.length; i++) {
-				if (utils.isEqual(value, this.items[i]))
-					return true;
-			}
 		}
 
 		slice(start:number, end:number = this.items.length):Collection<T> {
@@ -209,4 +213,13 @@ module utils {
 			return combs;
 		}
 	}
+
+	export class IdGen {
+		private static id:number = 0;
+
+		static getId() {
+			return IdGen.id++;
+		}
+	}
+
 }

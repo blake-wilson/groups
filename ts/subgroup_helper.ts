@@ -3,8 +3,9 @@
 
 module groups {
 
-	import Group = groups.Group;
 	import Collection = utils.Collection;
+	import Combinations = utils.Combinations;
+	import contains = utils.contains;
 
 	export class SubgroupHelper {
 
@@ -21,7 +22,7 @@ module groups {
 				this.calcSubgroupsCyclic();
 			}
 			else {
-				//todo: implement non-cyclic subgroup finding :/
+				this.subgroups = this.calcSubgroupsByBruteForce(this.fullGroup);
 			}
 			return this.subgroups;
 		}
@@ -66,7 +67,7 @@ module groups {
 
 		// Get array containing the divisors of num
 		private static getDivisors(num:number) {
-			var divisors = [];
+			var divisors = [1];
 
 			for (var i = 0; i * i <= num; i++) {
 				if (this.gcd(i, num) > 1) {
@@ -80,7 +81,7 @@ module groups {
 		}
 
 		private generateGroup(e:IElement) {
-			var elements:Collection<IElement> = new Collection<IElement>();
+			var elements:Elements = new Elements();
 
 			//todo: deep copy the element.
 			var orig:ConcreteElement = new ConcreteElement(e.getValue());
@@ -93,6 +94,46 @@ module groups {
 			}
 
 			return new Group(this.fullGroup.identity, this.fullGroup.operate, elements);
+		}
+
+		private calcSubgroupsByBruteForce(g:Group):Collection<Group> {
+
+			if (g.elements.size() > 22) {
+				alert("Group too large to attempt brute force subgroup calculation");
+				return null;
+			}
+
+			var combos:Combinations<IElement> = new Combinations<IElement>(g.elements, g.elements.size());
+			var res:Collection<Collection<IElement>> = new Collection<Elements>();
+			var subgroups:Collection<Group> = new Collection<Group>();
+
+			for (var i = 0; i < g.elements.size(); i++) {
+				if (g.elements.size() % i == 0) {
+					res = combos.k_combinations(<Collection<IElement>>g.elements, i);
+
+					for (var j = 0; j < res.size(); j++) {
+						if (SubgroupHelper.oneStepSubgroupTest(g, <Elements>res.get(j))) {
+							subgroups.add(new Group(g.identity, g.operate, <Elements>res.get(j)));
+						}
+					}
+				}
+			}
+			return subgroups;
+		}
+
+		// test ab^-1 in G for all a,b in G.
+		private static oneStepSubgroupTest(g:Group, candidateSet:Elements):boolean {
+
+			for (var i = 0; i < candidateSet.size(); i++) {
+
+				for (var j = 0; j < candidateSet.size(); j++)  {
+
+					if (!contains(candidateSet, (g.operate(candidateSet.get(i), g.getInverse(candidateSet.get(j)))))) {
+						return false;
+					}
+				}
+			}
+			return true;
 		}
 	}
 }

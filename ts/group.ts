@@ -3,12 +3,17 @@
 module groups {
 
 	import Collection = utils.Collection;
+	import IdGen = utils.IdGen;
+	import Comparable = utils.Comparable;
+
+	import contains = utils.contains;
 
 	export class Elements extends Collection<IElement> {
 	}
 
 	export class ConcreteElement implements IElement {
 		private _value:any;
+		private id:number;
 
 		public getValue():any {
 			return this._value;
@@ -18,13 +23,23 @@ module groups {
 			return this._value.toString();
 		}
 
+		public getId():number {
+			return this.id;
+		}
+
+		public equals(other: Comparable) {
+			return utils.isEqual(this._value, (<IElement>other).getValue());
+		}
+
 		constructor(value:any) {
 			this._value = value;
+			this.id = IdGen.getId();
 		}
 	}
 
 	export class VisualElement implements IVisualElement {
 		private _value:any;
+		private id:number;
 
 		public getValue():any {
 			return this._value;
@@ -32,6 +47,16 @@ module groups {
 
 		constructor(value:any) {
 			this._value = value;
+			this.id = IdGen.getId();
+		}
+
+		public equals(other: Comparable) {
+			return utils.isEqual(this._value, other);
+		}
+
+
+		public getId():number {
+			return this.id;
 		}
 
 		public toString():string {
@@ -39,9 +64,11 @@ module groups {
 		}
 	}
 
-	export interface IElement {
+	export interface IElement extends Comparable {
 		getValue():any;
+		getId():number;
 		toString():string;
+		equals(other: Comparable):boolean;
 	}
 
 	export interface IVisualElement extends IElement {
@@ -77,6 +104,9 @@ module groups {
 		private _isAbelian:boolean;
 		private _isCyclic:boolean;
 		private _elements:Elements;
+
+		private _inverseMap:{[id:number]: IElement;};
+
 		private _generatingSet:Elements;
 		private _order:number;
 		private _identity:IElement;
@@ -116,6 +146,13 @@ module groups {
 			return this._elements;
 		}
 
+		public get inverseMap(): {[id:number]: IElement;} {
+			return this._inverseMap;
+		}
+		public set inverseMap(map: {[id:number]: IElement;}) {
+			this._inverseMap = map;
+		}
+
 		public set elementVisual(elementVisual: ElementVisual) {
 			this._elementVisual = elementVisual;
 		}
@@ -146,7 +183,7 @@ module groups {
 			{
 				for (var j = 0; j < this.elements.size(); j++)
 				{
-					if (!this.isEqual(this.operate(this.elements.get(i), this.elements.get(j)).getValue(), (this.operate(this.elements.get(j), this.elements.get(i)).getValue())))
+					if (!this.operate(this.elements.get(i), this.elements.get(j)).equals(this.operate(this.elements.get(j), this.elements.get(i))))
 						return false;
 				}
 			}
@@ -168,6 +205,8 @@ module groups {
 			this._elements = elements;
 			this.operate = operation;
 
+			this.inverseMap = this.findInverses(elements, operation, identity);
+
 			// Find group properties
 			this.init();
 		}
@@ -182,7 +221,7 @@ module groups {
 			for (var i = 0; i < generatingSet.size(); i++) {
 				for (var j = 0; j < generatingSet.size(); j++) {
 					temp = operation(generatingSet.get(i), generatingSet.get(j));
-					if (!generatingSet.contains(temp) && !newElts.contains(temp))
+					if (!contains(generatingSet,temp) && !contains(newElts, temp))
 						newElts.add(temp);
 				}
 			}
@@ -199,7 +238,7 @@ module groups {
 		}
 
 		// Return null if the group cannot be generated.
-		static createGroup(generatingSet:Elements, operation:GroupOperation):IGroup<IElement> {
+		static createGroup(generatingSet:Elements, operation:GroupOperation):Group {
 			var groupElements:Elements = new Elements();
 			var identity:IElement = null;
 			var temp:IElement;
@@ -208,7 +247,7 @@ module groups {
 			// Enforce unique elements in set.
 			for (var i = 0; i < generatingSet.size(); i++)
 			{
-				if (!groupElements.contains(generatingSet.get(i)))
+				if (!contains(groupElements, (generatingSet.get(i))))
 					groupElements.add(generatingSet.get(i));
 			}
 
@@ -232,20 +271,9 @@ module groups {
 				return null;  //identity not found.
 			}
 
-			// Determine if every element of the group is invertible.
-			for (var i = 0; i < groupElements.size(); i++) {
-				for (var j = 0; j < groupElements.size(); j++) {
-					if (utils.isEqual(operation(groupElements.get(i), groupElements.get(j)).getValue(), identity.getValue()))
-						break; // inverse found for element i.
-					if ((i == groupElements.size() - 1) && (j == groupElements.size() - 1))
-						return null; // inverse not found for element i -> not a valid group.
-				}
-			}
-
 			g = new Group(identity, operation, groupElements);
 
-			// Find group properties.
-			g.init();
+			g.inverseMap =  g.findInverses(g.elements, g.operate, g.identity);
 
 			return g;
 		}
@@ -255,8 +283,31 @@ module groups {
 
 		}
 
-		static getInverse(element:Element, G:Group) {
+		public getInverse(e:IElement) {
+			return this._inverseMap[e.getId()];
+		}
 
+		// if element is invertible, add it to an inverses map.  If any element is non-invertible, return null. If all elements are invertible, return the inverse map.
+		private findInverses(groupElements:Elements, operation:GroupOperation, identity:IElement): {[id:number]: IElement;} {
+
+			var inverseMap:{[id:number]: IElement;} = {};
+			var result:IElement;
+
+			for (var i = 0; i < groupElements.size(); i++) {
+				for (var j = 0; j < groupElements.size(); j++) {
+					result = operation(groupElements.get(i), groupElements.get(j));
+					if (utils.isEqual(result.getValue(), identity.getValue())) {
+						// Add inverse to the inverse map.
+						inverseMap[groupElements.get(i).getId()] = groupElements.get(j);
+						break; // inverse found for element i.
+					}
+					if ((i == groupElements.size() - 1) && (j == groupElements.size() - 1))
+						return null; // inverse not found for element i -> not a valid group.
+				}
+			}
+
+			// every element was invertible - valid map should've been produced.
+			return inverseMap;
 		}
 
 		// Group events
@@ -305,7 +356,7 @@ module groups {
 		}
 
 		static createGroup(generatingSet:Elements, operation:GroupOperation): VisualGroup {
-			var g:IGroup<IElement> = Group.createGroup(generatingSet, operation);
+			var g:Group = Group.createGroup(generatingSet, operation);
 
 			return new VisualGroup(g.identity, g.operate, g.elements);
 		}

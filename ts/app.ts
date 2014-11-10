@@ -137,6 +137,10 @@ module group_app {
 
 		private displaySubgroups() {
 			this.subgroupsList.innerHTML = "";
+
+			if (this.subgroups == null)
+				return;
+
 			var listItem:HTMLElement;
 			var groupText:Text;
 
