@@ -24,7 +24,7 @@ module groups {
 
 		private refreshSignal:Signal;
 
-	    private static operandBGHighlightColor:string = "#7777dd";
+		private static operandBGHighlightColor:string = "#7777dd";
 		private static sameRowColHighlightColor:string = "#ddddff";
 
 		constructor(g:VisualGroup) {

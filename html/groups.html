@@ -6,7 +6,11 @@
     <title>Group App</title>
 </head>
 <body>
-    <div style="width: 100%; overflow: hidden; margin-left: 20%">
+    <div style="overflow: hidden; margin-left: 20%">
+
+        <input type="checkbox" id="graphical_table" value="graphical">
+        <label for="graphical_table">Graphical</label>
+
         <div>
             <table id="cayley_table">
             </table>
@@ -21,18 +25,16 @@
         </div>
 
         <div>
-            <input type="checkbox" id="graphical_table" value="graphical">
-            <label for="graphical_table">Graphical</label>
             <br />
             <br />
 
             <select id="pre_def_groups">
                 <option value="1" selected="selected">Integers mod n</option>
-                <option value="2">"Color Group" (Z_3 x Z_3 x Z_3)</option>
-                <option value="3">3rd option</option>
+                <option value="2">"Color Group" (Z_n x Z_n x Z_n)</option>
+                <option value="3">Custom Group</option>
             </select>
 
-            <br />
+            <br /><br />
 
             <div id="info">
                 <div id="prompts">
@@ -41,15 +43,7 @@
             </div>
 
             <br />
-
-            <p>Enter an operation below
-                <br />
-                <a href="about.html">help</a>
-            </p>
-            <input type="text" id="operation">
-
             <br />
-
 
             <h2>Subgroups</h2>
             <ul id="subgroupsList">
@@ -59,6 +53,15 @@
             <ul id="propertiesList">
                 <!-- properties list -->
             </ul>
+
+            <br />
+            <p>Enter an operation below
+                <br />
+            </p>
+            <input type="text" id="operation">
+            <br /><br /><br />
+            <a href="about.html" class="small">help</a>
+
 
         </div>
 

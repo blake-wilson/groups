@@ -345,12 +345,12 @@ module groups {
 				super(identity, operation, elts);
 		 }
 
-		 operate(left:VisualElement, right:VisualElement) {
+		 operate(left:IElement, right:IElement) {
 			 // implementation provided by user.
 			 return null;
 		 }
 
-		 eltRepr(e:VisualElement):HTMLElement {
+		 eltRepr(e:IElement):HTMLElement {
 			var htmlElement:HTMLElement = this.visualize(e);
 			 return htmlElement;
 		}
@@ -361,7 +361,7 @@ module groups {
 			return new VisualGroup(g.identity, g.operate, g.elements);
 		}
 
-		public visualize(e:VisualElement):HTMLElement {
+		public visualize(e:IElement):HTMLElement {
 			 return null;
 		}
 
@@ -371,9 +371,7 @@ module groups {
 
 			for (var i = 0; i < this.elements.size(); i++) {
 				// use element visualizing function if one was specified.
-
-				//todo: see if cast can be eliminated
-				aggregator.appendChild(this.visualize((<VisualElement>this.elements.get(i))));
+				aggregator.appendChild(this.visualize((this.elements.get(i))));
 			}
 
 			return aggregator;

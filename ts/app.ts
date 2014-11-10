@@ -15,6 +15,46 @@ module group_app {
 
 	import Collection = utils.Collection;
 
+	class UserParameters {
+		private userParameters: HTMLInputElement[];
+		private paramDescriptions: string[];
+
+		constructor() {
+			this.userParameters = [];
+			this.paramDescriptions = [];
+		}
+
+		set(index: number, value: string) {
+			this.userParameters[index].value = value;
+		}
+		get(index:number): string {
+			return this.userParameters[index].value;
+		}
+
+		add(input: HTMLInputElement, message: string) {
+			// set attribute before adding for CSS styling.
+			input.setAttribute("class", "param");
+			this.userParameters.push(input);
+			this.paramDescriptions.push(message);
+		}
+
+		getHtml(index: number):HTMLElement {
+			var span = document.createElement("span");
+			span.appendChild(this.userParameters[index]);
+			span.appendChild(Background.createTextSpan(this.paramDescriptions[index]));
+			return span;
+		}
+
+		length(): number {
+			return this.userParameters.length;
+		}
+
+		clear() {
+			this.userParameters = [];
+			this.paramDescriptions = [];
+		}
+	}
+
 	class Background {
 
 		private g:VisualGroup;
@@ -32,10 +72,12 @@ module group_app {
 		private table:groups.CayleyTable;
 
 		// textbox for user input - not visible by default.
-		private promptText:HTMLInputElement;
-		private promptHidden:boolean = true;
+		private params: UserParameters;
 
 		private prompts:HTMLElement;
+
+		private showGraphicalCheckbox:HTMLInputElement;
+		private showGraphics:boolean = true;
 
         constructor() {
 	        this.predefinedGroups = <HTMLSelectElement>document.getElementById("pre_def_groups");
@@ -45,40 +87,36 @@ module group_app {
 		        _self.switchGroups();
 	        });
 
-	        //this.table = new groups.CayleyTable(this.colorGroupSample());
-
-	        //this.helper = new SubgroupHelper(this.g);
-
-	        //this.subgroups = this.helper.calcSubgroups();
-
 	        this.subgroupsList = document.getElementById("subgroupsList");
 	        this.propertiesList = document.getElementById("propertiesList");
 
-	        //this.displaySubgroups();
-	       // this.displayGroupProperties();
-	        this.prompts = document.getElementById("prompts");
-	        this.promptText = document.createElement("input");
+	        this.params = new UserParameters();
 
-	        this.promptText.addEventListener("change", () => {
-		        _self.switchGroups();
-	        });
+	        this.prompts = document.getElementById("prompts");
+
+	        var input: HTMLInputElement = document.createElement("input");
+
+	        this.showGraphicalCheckbox = <HTMLInputElement>document.getElementById("graphical_table");
+	        this.showGraphicalCheckbox.checked = true;
+	        this.showGraphicalCheckbox.addEventListener("click", () => {_self.showGraphics = this.showGraphicalCheckbox.checked; this.refreshGroupPropsDisplay();});
 
 	        this.switchGroups();
         }
 
 		private switchGroups() {
 			var selectedVal = this.predefinedGroups.value;
+			this.prompts.innerHTML = "";
 
 			switch(selectedVal) {
 				case "1":
 					this.prepPromptIntModN();
-					var modulus = this.promptText.value;
+					var modulus = 12; // initial value for the group.
 					this.g = this.intModNExample(+modulus);
 					this.table = new groups.CayleyTable(this.g);
 					break;
 				case "2":
 					this.prepPromptColor();
-					this.g = this.colorGroupSample();
+					this.g = this.colorGroupSample(3, 3, 3);  // initial values for the color group.
 					this.table = new groups.CayleyTable(this.g);
 					break;
 				default:
@@ -92,21 +130,80 @@ module group_app {
 			this.displayGroupProperties();
 		}
 
-		private prepPromptIntModN() {
-			if (this.promptHidden) {
-				this.prompts.appendChild(this.promptText);
-				this.promptText.value = "10";
-				this.promptHidden = false;
+		private updateGroup() {
+			var selectedVal = this.predefinedGroups.value;
+			switch(selectedVal) {
+				// int's mod n
+				case "1":
+					var modulus = this.params.get(0);
+					this.g = this.intModNExample(+modulus);
+					this.table = new groups.CayleyTable(this.g);
+					break;
+				// color group
+				case "2":
+					var rLevels = this.params.get(0);
+					var gLevels = this.params.get(1);
+					var bLevels = this.params.get(2);
+					this.g = this.colorGroupSample(+rLevels, +gLevels, +bLevels);
+					this.table = new groups.CayleyTable(this.g);
+					break;
+				default:
+					break;
 			}
+			this.helper = new SubgroupHelper(this.g);
+			this.subgroups = this.helper.calcSubgroups();
+			this.displaySubgroups();
+			this.displayGroupProperties();
+		}
+
+		private refreshGroupPropsDisplay() {
+			this.displaySubgroups();
+			this.displayGroupProperties();
+		}
+
+		private prepPromptIntModN() {
+			this.params.clear();
+			var _self = this;
+
+			var input = document.createElement("input");
+			input.addEventListener("change", () => {
+				_self.updateGroup();
+			});
+			this.params.add(input, "Modulus");
+			this.prompts.appendChild(this.params.getHtml(0));
 		}
 
 		private prepPromptColor() {
-			if (!this.promptHidden) {
-				this.prompts.innerHTML = "";
-				this.promptHidden = true;
+			this.params.clear();
+			var _self = this;
+			var input = document.createElement("input");
+
+			// put an input for R, G, and B levels.
+			input.addEventListener("change", () => {
+				_self.updateGroup();
+			});
+			this.params.add(input, "Red levels");
+			this.params.set(0, "3");
+
+			input = document.createElement("input");
+			input.addEventListener("change", () => {
+				_self.updateGroup();
+			});
+			this.params.add(input, "Green levels");
+			this.params.set(1, "3");
+
+			input = document.createElement("input");
+			input.addEventListener("change", () => {
+				_self.updateGroup();
+			});
+			this.params.add(input, "Blue levels");
+			this.params.set(2, "3");
+
+			for (var i = 0; i < this.params.length(); i++) {
+				this.prompts.appendChild(this.params.getHtml(i));
+				this.prompts.appendChild(document.createElement("br"));
 			}
 		}
-
 
 		private intModNExample(modulus:number):VisualGroup {
 			var modulus:number = modulus;
@@ -146,10 +243,43 @@ module group_app {
 
 			for (var i = 0; i < this.subgroups.size(); i++) {
 				listItem = document.createElement("li");
-				groupText = document.createTextNode(this.subgroups.get(i).toString());
 
-				listItem.appendChild(groupText);
+				var table:HTMLElement = document.createElement("table");
+				var groupRow:HTMLElement = document.createElement("tr");
+
+				for (var j = 0; j < this.subgroups.get(i).elements.size(); j++) {
+					var groupRowEntry = document.createElement("td");
+					if (j == 0 && !this.showGraphics)
+						groupRowEntry.appendChild(Background.createTextSpan("{ "));
+
+					groupRowEntry.appendChild(this.drawTableCell(this.subgroups.get(i).elements.get(j)));
+
+					if (j != this.subgroups.get(i).elements.size() - 1 && !this.showGraphics)
+						groupRowEntry.appendChild(Background.createTextSpan(", "));
+					else if (!this.showGraphics)
+						groupRowEntry.appendChild(Background.createTextSpan(" }"));
+
+					groupRow.appendChild(groupRowEntry);
+				}
+				table.appendChild(groupRow);
+				listItem.appendChild(table);
 				this.subgroupsList.appendChild(listItem);
+			}
+
+		}
+
+		static createTextSpan(text: string): HTMLElement {
+			var span = document.createElement("span");
+			span.innerHTML = text;
+			return span;
+		}
+
+		private drawTableCell(e:IElement):HTMLElement {
+			if (this.showGraphics) {
+				return this.g.eltRepr(e);
+			}
+			else {
+				return Background.createTextSpan(e.toString());
 			}
 		}
 
@@ -157,58 +287,70 @@ module group_app {
 			this.propertiesList.innerHTML = "";
 
 			var propertyItem:HTMLElement;
-			var propertyText:Text;
+			var propertyText:HTMLElement;
 
 
 			propertyItem = document.createElement("li");
-			propertyText = document.createTextNode("Group is ");
+			propertyText = Background.createTextSpan("Group is ");
 			if (!this.g.isAbelian)
-				propertyText.appendData("not ");
-			propertyText.appendData("Abelian.");
+				propertyText.innerHTML += "not ";
+			propertyText.innerHTML += "Abelian.";
 			propertyItem.appendChild(propertyText);
 			this.propertiesList.appendChild(propertyItem);
 
 			propertyItem = document.createElement("li");
-			propertyText = document.createTextNode("Group is ");
+			propertyText = Background.createTextSpan("Group is ");
 			if (!this.g.isCyclic)
-				propertyText.appendData("not ");
-			propertyText.appendData("Cyclic.");
+				propertyText.innerHTML += "not ";
+			propertyText.innerHTML += "Cyclic.";
 			propertyItem.appendChild(propertyText);
 			this.propertiesList.appendChild(propertyItem);
 		}
 
-		private colorGroupSample(): VisualGroup {
+		private colorGroupSample(rLevels:number, gLevels:number, bLevels:number): VisualGroup {
 			var g:VisualGroup;
 
-			var steps = [0,1,2];
 			var elements:Elements = new Elements();
-			var pointsArray = [];
 
 			elements.add(new ConcreteElement(new utils.OrderedTriple(1, 0, 0)));
 			elements.add(new ConcreteElement(new utils.OrderedTriple(0, 1, 0)));
 			elements.add(new ConcreteElement(new utils.OrderedTriple(0,0,1)));
 
 			var operation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
-				var red = ((<utils.OrderedTriple>left.getValue()).x + (<utils.OrderedTriple>right.getValue()).x) % 3;
-				var green = ((<utils.OrderedTriple>left.getValue()).y + (<utils.OrderedTriple>right.getValue()).y) % 3;
-				var blue = ((<utils.OrderedTriple>left.getValue()).z + (<utils.OrderedTriple>right.getValue()).z) % 3;
+				var red = ((<utils.OrderedTriple>left.getValue()).x + (<utils.OrderedTriple>right.getValue()).x) % rLevels;
+				var green = ((<utils.OrderedTriple>left.getValue()).y + (<utils.OrderedTriple>right.getValue()).y) % gLevels;
+				var blue = ((<utils.OrderedTriple>left.getValue()).z + (<utils.OrderedTriple>right.getValue()).z) % bLevels;
 
 				return new groups.ConcreteElement(new utils.OrderedTriple(red, green, blue));
 			};
 
 			g = VisualGroup.createGroup(elements, operation);
 			g.visualize = function (e:VisualElement) {
-				var colorIntensities = [0,100,255];
-				//<div style="width:500px;height:100px
+
+				var rIntensities = [];
+				for (var i = 0; i < rLevels; i++) {
+					rIntensities.push(i * (255 / (rLevels - 1)));
+				}
+
+				var gIntensities = [];
+				for (var i = 0; i < gLevels; i++) {
+					gIntensities.push(i * (255 / (gLevels - 1)));
+				}
+
+				var bIntensities = [];
+				for (var i = 0; i < bLevels; i++) {
+					bIntensities.push(i * (255 / (bLevels - 1)));
+				}
+
 				var repr = document.createElement("div");
 
 				repr.style.width = "20px";
 				repr.style.height = "20px";
 				repr.style.margin = "2px";
 
-				var rVal = colorIntensities[e.getValue().x];
-				var gVal = colorIntensities[e.getValue().y];
-				var bVal = colorIntensities[e.getValue().z];
+				var rVal = rIntensities[e.getValue().x];
+				var gVal = gIntensities[e.getValue().y];
+				var bVal = bIntensities[e.getValue().z];
 
 				repr.style.backgroundColor =  new utils.OrderedTriple(rVal, gVal, bVal).toRGBHexString();
 
