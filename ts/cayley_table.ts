@@ -1,6 +1,7 @@
 /// <reference path="group.ts"/>
 /// <reference path="Signal.ts" />
 /// <reference path="utils.ts" />
+/// <reference path="app.ts" />
 
 module groups {
 
@@ -14,7 +15,6 @@ module groups {
 
 		private table:HTMLTableElement;
 
-		toggleReprCheckbox:HTMLInputElement;
 		opWindow:HTMLElement;
 
 		nRows:number = 0;
@@ -35,9 +35,7 @@ module groups {
 
 			//bind event listeners
 			this.refreshSignal = new Signal();
-			this.toggleReprCheckbox = <HTMLInputElement>document.getElementById("graphical_table");
 			this.opWindow = document.getElementById("op_window");
-			this.toggleReprCheckbox.checked = true;
 			this.addListeners();
 		}
 
@@ -45,7 +43,13 @@ module groups {
 			this.refreshSignal.add( () => {
 				this.toggleVisualization();
 			});
-			this.toggleReprCheckbox.addEventListener("click", () => {this.refreshSignal.dispatch()});
+
+			// todo: move checkbox state to settings.
+			group_app.Background.showGraphicalCheckbox.addEventListener("click", () => {this.refreshSignal.dispatch()});
+		}
+
+		delete() {
+			this.refreshSignal.removeAll();
 		}
 
 		private toggleVisualization() {

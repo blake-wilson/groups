@@ -55,7 +55,7 @@ module group_app {
 		}
 	}
 
-	class Background {
+	export class Background {
 
 		private g:VisualGroup;
 
@@ -76,7 +76,7 @@ module group_app {
 
 		private prompts:HTMLElement;
 
-		private showGraphicalCheckbox:HTMLInputElement;
+		static showGraphicalCheckbox:HTMLInputElement = <HTMLInputElement>document.getElementById("graphical_table");
 		private showGraphics:boolean = true;
 
         constructor() {
@@ -96,9 +96,8 @@ module group_app {
 
 	        var input: HTMLInputElement = document.createElement("input");
 
-	        this.showGraphicalCheckbox = <HTMLInputElement>document.getElementById("graphical_table");
-	        this.showGraphicalCheckbox.checked = true;
-	        this.showGraphicalCheckbox.addEventListener("click", () => {_self.showGraphics = this.showGraphicalCheckbox.checked; this.refreshGroupPropsDisplay();});
+	        Background.showGraphicalCheckbox.checked = true;
+	        Background.showGraphicalCheckbox.addEventListener("click", () => {_self.showGraphics = Background.showGraphicalCheckbox.checked; this.refreshGroupPropsDisplay();});
 
 	        this.switchGroups();
         }
@@ -106,6 +105,9 @@ module group_app {
 		private switchGroups() {
 			var selectedVal = this.predefinedGroups.value;
 			this.prompts.innerHTML = "";
+			if (this.table)
+				this.table.delete();
+			this.table = null;
 
 			switch(selectedVal) {
 				case "1":
@@ -132,6 +134,9 @@ module group_app {
 
 		private updateGroup() {
 			var selectedVal = this.predefinedGroups.value;
+			if (this.table)
+				this.table.delete();
+			this.table = null;
 			switch(selectedVal) {
 				// int's mod n
 				case "1":
