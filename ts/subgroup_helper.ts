@@ -17,28 +17,37 @@ module groups {
 		}
 
 		calcSubgroups() {
+			var subgroupSets:Collection<Elements> = new Collection<Elements>();
 			if (this.fullGroup.isCyclic) {
-				this.calcSubgroupsCyclic();
+				subgroupSets = this.calcSubgroupsCyclic();
 			}
 			else {
-				this.subgroups = this.calcSubgroupsByBruteForce(this.fullGroup);
+				subgroupSets = this.calcSubgroupsByBruteForce(this.fullGroup);
+			}
+			for (var i = 0; i < subgroupSets.size(); i++) {
+				this.subgroups.add(new Group(this.fullGroup.identity, this.fullGroup.operate, subgroupSets.get(i)))
 			}
 			return this.subgroups;
 		}
 
-		calcSubgroupsCyclic() {
+		calcSubgroupsCyclic(): Collection<Elements> {
+			var subgroupSets:Collection<Elements> = new Collection<Elements>();
 			var divisors = SubgroupHelper.getDivisors(this.fullGroup.order);
+			var order:number;
+			var ordersUsed = [];
 
 			for (var i = 0; i < this.fullGroup.order; i++) {
 				for (var j = 0; j < this.fullGroup.order; j++) {
-					if (divisors[i] == this.fullGroup.eOrder(this.fullGroup.elements.get(j)))
+					order = this.fullGroup.eOrder(this.fullGroup.elements.get(j));
+					if (divisors[i] == order && ordersUsed.indexOf(order) == -1) {
+						ordersUsed.push(order);
 						break;
+					}
 				}
 				if (j != this.fullGroup.order)
-					this.subgroups.add(new Group(this.fullGroup.identity, this.fullGroup.operate,
-						this.generateGroup(this.fullGroup.elements.get(j)).elements));
+					subgroupSets.add(this.generateGroup(this.fullGroup.elements.get(j)).elements);
 			}
-			return this.subgroups;
+			return subgroupSets;
 		}
 
 		static gcd(num1:number, num2:number) {
@@ -95,7 +104,7 @@ module groups {
 			return new Group(this.fullGroup.identity, this.fullGroup.operate, elements);
 		}
 
-		private calcSubgroupsByBruteForce(g:Group):Collection<Group> {
+		private calcSubgroupsByBruteForce(g:Group): Collection<Elements> {
 
 			if (g.elements.size() > 22) {
 				alert("Group too large to attempt brute force subgroup calculation");
@@ -121,12 +130,8 @@ module groups {
 					}
 				}
 			}
-			var subgroups:Collection<Group> = new Collection<Group>();
-			for (var i = 0; i < subgroupSets.size(); i++) {
-				subgroups.add(new Group(g.identity, g.operate, subgroupSets.get(i)))
-			}
 
-			return subgroups;
+			return subgroupSets;
 		}
 
 		// test ab^-1 in G for all a,b in G.
