@@ -5,7 +5,6 @@ module groups {
 
 	import Collection = utils.Collection;
 	import Combinations = utils.Combinations;
-	import contains = utils.contains;
 
 	export class SubgroupHelper {
 
@@ -105,19 +104,28 @@ module groups {
 
 			var combos:Combinations<IElement> = new Combinations<IElement>(g.elements, g.elements.size());
 			var res:Collection<Collection<IElement>> = new Collection<Elements>();
-			var subgroups:Collection<Group> = new Collection<Group>();
+			var subgroupSets:Collection<Elements> = new Collection<Elements>();
 
 			for (var i = 0; i < g.elements.size(); i++) {
 				if (g.elements.size() % i == 0) {
 					res = combos.k_combinations(<Collection<IElement>>g.elements, i);
 
 					for (var j = 0; j < res.size(); j++) {
-						if (SubgroupHelper.oneStepSubgroupTest(g, <Elements>res.get(j))) {
-							subgroups.add(new Group(g.identity, g.operate, <Elements>res.get(j)));
+						if (!res.get(j).contains(g.identity))
+							continue;
+						if (!subgroupSets.contains(<Elements>res.get(j))) {
+							if (SubgroupHelper.oneStepSubgroupTest(g, <Elements>res.get(j))) {
+								subgroupSets.add(<Elements>res.get(j));
+							}
 						}
 					}
 				}
 			}
+			var subgroups:Collection<Group> = new Collection<Group>();
+			for (var i = 0; i < subgroupSets.size(); i++) {
+				subgroups.add(new Group(g.identity, g.operate, subgroupSets.get(i)))
+			}
+
 			return subgroups;
 		}
 
@@ -128,7 +136,7 @@ module groups {
 
 				for (var j = 0; j < candidateSet.size(); j++)  {
 
-					if (!contains(candidateSet, (g.operate(candidateSet.get(i), g.getInverse(candidateSet.get(j)))))) {
+					if (!candidateSet.contains(g.operate(candidateSet.get(i), g.getInverse(candidateSet.get(j))))) {
 						return false;
 					}
 				}

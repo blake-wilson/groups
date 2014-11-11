@@ -221,7 +221,7 @@ module group_app {
 				return new groups.ConcreteElement((left.getValue() + right.getValue()) % modulus);
 			};
 
-			var elements:Collection<ConcreteElement> = new Collection<ConcreteElement>();
+			var elements:Elements = new Elements();
 			for (var i = 0; i < modulus; i++)
 				elements.add(new ConcreteElement(i));
 

@@ -76,14 +76,6 @@ module utils {
 		}
 	}
 
-	export function contains(collection: Collection<Comparable>, value:Comparable) {
-		for (var i = 0; i < collection.size(); i++) {
-			if (value.equals(collection.get(i)))
-				return true;
-		}
-		return false;
-	}
-
 	export function isEqual(x, y) {
 		if ( x === y ) return true;
 		// if both x and y are null or undefined and exactly the same
@@ -123,7 +115,7 @@ module utils {
 		equals(other: Comparable): boolean;
 	}
 
-	export class Collection<T> {
+	export class Collection<T extends Comparable> {
 		private items: Array<T>;
 
 		constructor() {
@@ -164,9 +156,36 @@ module utils {
 			}
 			return temp;
 		}
+
+		equals(other: Collection<T>): boolean {
+			if (this.size() != other.size())
+				return false;
+
+			for (var i = 0; i < this.size(); i++) {
+				if (!this.contains(other.get(i)))
+					return false;
+			}
+			return true;
+		}
+
+		contains(item: T): boolean {
+			for (var i = 0; i < this.size(); i++) {
+				if (this.get(i).equals(item))
+					return true;
+			}
+			return false;
+		}
+
+		shift(): T {
+			return this.items.shift();
+		}
+
+		unshift(item: T): number {
+			return this.items.unshift(item);
+		}
 	}
 
-	export class Combinations<T> {
+	export class Combinations<T extends Comparable> {
 		private collection:Collection<T>;
 		private setSize:number;
 

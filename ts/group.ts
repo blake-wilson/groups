@@ -6,9 +6,17 @@ module groups {
 	import IdGen = utils.IdGen;
 	import Comparable = utils.Comparable;
 
-	import contains = utils.contains;
-
 	export class Elements extends Collection<IElement> {
+		equals(other: Comparable): boolean {
+			var o:Elements = <Elements>other;
+			if (this.size() != o.size()) {
+				return false;
+			}
+			for (var i = 0; i < this.size(); i++) {
+				if (!o.contains(this.get(i)))
+					return false;
+			}
+		}
 	}
 
 	export class ConcreteElement implements IElement {
@@ -37,30 +45,26 @@ module groups {
 		}
 	}
 
-	export class VisualElement implements IVisualElement {
-		private _value:any;
-		private id:number;
+	export class VisualElement extends ConcreteElement implements IVisualElement {
 
 		public getValue():any {
-			return this._value;
+			return super.getValue();
 		}
 
 		constructor(value:any) {
-			this._value = value;
-			this.id = IdGen.getId();
+			super(value);
 		}
 
 		public equals(other: Comparable) {
-			return utils.isEqual(this._value, other);
+			return utils.isEqual(super.getValue(), other);
 		}
 
-
 		public getId():number {
-			return this.id;
+			return super.getId();
 		}
 
 		public toString():string {
-			return this._value.toString();
+			return super.getValue().toString();
 		}
 	}
 
@@ -89,13 +93,13 @@ module groups {
 	export interface IGroup<T> {
 		operate(left:T, right:T):T;
 
-		isEqual(left:T, right:T);
+		equals(other: IGroup<T>);
 
 		toString();
 
 		identity: T;
 
-		elements: Collection<T>;
+		elements: Collection<Comparable>;
 	}
 
 	export class Group implements IGroup<IElement> {
@@ -171,7 +175,7 @@ module groups {
 		eOrder(element:IElement):number {
 			var order:number;
 			var current:IElement = new ConcreteElement(element.getValue());
-			for (order = 1; !(this.isEqual(current.getValue(), this.identity.getValue())) && order < this.elements.size(); order++)
+			for (order = 1; !(current.equals(this.identity)) && order < this.elements.size(); order++)
 			{
 				current = this.operate(current, element);
 			}
@@ -221,7 +225,7 @@ module groups {
 			for (var i = 0; i < generatingSet.size(); i++) {
 				for (var j = 0; j < generatingSet.size(); j++) {
 					temp = operation(generatingSet.get(i), generatingSet.get(j));
-					if (!contains(generatingSet,temp) && !contains(newElts, temp))
+					if (!generatingSet.contains(temp) && !newElts.contains(temp))
 						newElts.add(temp);
 				}
 			}
@@ -247,7 +251,7 @@ module groups {
 			// Enforce unique elements in set.
 			for (var i = 0; i < generatingSet.size(); i++)
 			{
-				if (!contains(groupElements, (generatingSet.get(i))))
+				if (!groupElements.contains(generatingSet.get(i)))
 					groupElements.add(generatingSet.get(i));
 			}
 
@@ -260,8 +264,12 @@ module groups {
 						!utils.isEqual(operation(groupElements.get(j), groupElements.get(i)).getValue(), groupElements.get(j).getValue()))
 						break;
 					if (j == groupElements.size() - 1)
-						if (!identity)
+						if (!identity) {
 							identity = groupElements.get(i);
+							// put identity at the front of the elements for easier table display.
+							groupElements.remove(i);
+							groupElements.unshift(identity);
+						}
 						else
 							return null;  // more than one identity found.
 				}
@@ -315,16 +323,13 @@ module groups {
 		}
 
 		contains(e: IElement) {
-			for (var i = 0; i < this.elements.size(); i++) {
-				if (this.isEqual(e, this.elements.get(i))) {
-					return true;
-				}
-			}
-			return false;
+			return this.elements.contains(e);
 		}
 
-		isEqual (e1: IElement, e2: IElement): boolean {
-			return utils.isEqual(e1,e2);
+		equals (other: Group): boolean {
+			if (this.operate != other.operate)
+				return false;
+			return this.elements.equals(other.elements);
 		}
 
 		toString() {
