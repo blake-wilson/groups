@@ -24,6 +24,10 @@ module groups {
 			else {
 				subgroupSets = this.calcSubgroupsByBruteForce(this.fullGroup);
 			}
+			if (!subgroupSets) {
+				//subgroups could not be found - group could be too large error could have occurred.
+				return null;
+			}
 			for (var i = 0; i < subgroupSets.size(); i++) {
 				this.subgroups.add(new Group(this.fullGroup.identity, this.fullGroup.operate, subgroupSets.get(i)))
 			}

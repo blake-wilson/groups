@@ -42,6 +42,47 @@ module utils {
 		}
 	}
 
+	export class OrderedPair {
+		constructor(public x:number, public y:number) {}
+		toString(): string {
+			return "(" + this.x.toString() + ", " + this.y.toString() + ")";
+		}
+	}
+
+	export class Value {
+		private val:any;
+		private valNames: string[];
+
+		constructor(value: any = []) {
+			this.val = value;
+			this.valNames = [];
+		}
+
+		addProperty(name:string, value:any) {
+			this.val[name] = value;
+			this.valNames.push(name);
+		}
+
+		getProperty(name: string): any {
+			if (this.val.hasOwnProperty(name)) {
+				return this.val[name];
+			}
+			return null;
+		}
+
+		getValue() {
+			return this.val;
+		}
+
+		toString(): string {
+			var retstr:string = "";
+			for (var i = 0; i < this.valNames.length; i++) {
+				retstr += this.valNames[i] + ": " + this.val[this.valNames[i]] + ";";
+			}
+			return retstr;
+		}
+	}
+
 	export class OrderedTriple {
 		constructor(public x:number, public y:number, public z:number) {}
 		toString():string {

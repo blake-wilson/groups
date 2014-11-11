@@ -12,6 +12,7 @@ module group_app {
 	import ConcreteElement = groups.ConcreteElement;
 	import Elements = groups.Elements;
 	import SubgroupHelper = groups.SubgroupHelper;
+	import Value = utils.Value;
 
 	import Collection = utils.Collection;
 
@@ -105,6 +106,7 @@ module group_app {
 		private switchGroups() {
 			var selectedVal = this.predefinedGroups.value;
 			this.prompts.innerHTML = "";
+			this.params.clear();
 			if (this.table)
 				this.table.delete();
 			this.table = null;
@@ -119,6 +121,11 @@ module group_app {
 				case "2":
 					this.prepPromptColor();
 					this.g = this.colorGroupSample(3, 3, 3);  // initial values for the color group.
+					this.table = new groups.CayleyTable(this.g);
+					break;
+				case "3":
+					this.prepPromptDihedral();
+					this.g = this.dihedralExpample(3); // initial values for order of group / 2.
 					this.table = new groups.CayleyTable(this.g);
 					break;
 				default:
@@ -152,6 +159,16 @@ module group_app {
 					this.g = this.colorGroupSample(+rLevels, +gLevels, +bLevels);
 					this.table = new groups.CayleyTable(this.g);
 					break;
+				// dihedral group
+				case "3":
+					var order = +(this.params.get(0));
+					if (order < 3) {
+						alert("Order must be > 2 for dihedral group.")
+						break;
+					}
+					this.g = this.dihedralExpample(+order);
+					this.table = new groups.CayleyTable(this.g);
+					break;
 				default:
 					break;
 			}
@@ -167,7 +184,6 @@ module group_app {
 		}
 
 		private prepPromptIntModN() {
-			this.params.clear();
 			var _self = this;
 
 			var input = document.createElement("input");
@@ -179,7 +195,6 @@ module group_app {
 		}
 
 		private prepPromptColor() {
-			this.params.clear();
 			var _self = this;
 			var input = document.createElement("input");
 
@@ -210,6 +225,20 @@ module group_app {
 			}
 		}
 
+		private prepPromptDihedral() {
+			var _self = this;
+			var input = document.createElement("input");
+
+			// put an input for R, G, and B levels.
+			input.addEventListener("change", () => {
+				_self.updateGroup();
+			});
+			this.params.add(input, "Order of group / 2");
+			this.params.set(0, "3");
+
+			this.prompts.appendChild(this.params.getHtml(0));
+		}
+
 		private intModNExample(modulus:number):VisualGroup {
 			var modulus:number = modulus;
 
@@ -235,6 +264,132 @@ module group_app {
 			};
 
 			return g;
+		}
+
+		private colorGroupSample(rLevels:number, gLevels:number, bLevels:number): VisualGroup {
+			var g:VisualGroup;
+
+			var elements:Elements = new Elements();
+
+			elements.add(new ConcreteElement(new utils.OrderedTriple(1, 0, 0)));
+			elements.add(new ConcreteElement(new utils.OrderedTriple(0, 1, 0)));
+			elements.add(new ConcreteElement(new utils.OrderedTriple(0,0,1)));
+
+			var operation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
+				var red = ((<utils.OrderedTriple>left.getValue()).x + (<utils.OrderedTriple>right.getValue()).x) % rLevels;
+				var green = ((<utils.OrderedTriple>left.getValue()).y + (<utils.OrderedTriple>right.getValue()).y) % gLevels;
+				var blue = ((<utils.OrderedTriple>left.getValue()).z + (<utils.OrderedTriple>right.getValue()).z) % bLevels;
+
+				return new groups.ConcreteElement(new utils.OrderedTriple(red, green, blue));
+			};
+
+			g = VisualGroup.createGroup(elements, operation);
+			g.visualize = function (e:VisualElement) {
+
+				var rIntensities = [];
+				for (var i = 0; i < rLevels; i++) {
+					rIntensities.push(i * (255 / (rLevels - 1)));
+				}
+
+				var gIntensities = [];
+				for (var i = 0; i < gLevels; i++) {
+					gIntensities.push(i * (255 / (gLevels - 1)));
+				}
+
+				var bIntensities = [];
+				for (var i = 0; i < bLevels; i++) {
+					bIntensities.push(i * (255 / (bLevels - 1)));
+				}
+
+				var repr = document.createElement("div");
+
+				repr.style.width = "20px";
+				repr.style.height = "20px";
+				repr.style.margin = "2px";
+
+				var rVal = rIntensities[e.getValue().x];
+				var gVal = gIntensities[e.getValue().y];
+				var bVal = bIntensities[e.getValue().z];
+
+				repr.style.backgroundColor =  new utils.OrderedTriple(rVal, gVal, bVal).toRGBHexString();
+
+				return repr;
+			};
+
+			return g;
+		}
+
+		private dihedralExpample(order:number): VisualGroup {
+			var g:VisualGroup;
+
+			var elements:Elements = new Elements();
+
+			var val: Value = new Value();
+			val.addProperty("rotation", 1);
+			elements.add(new ConcreteElement(val));
+			val = new Value();
+			val.addProperty("reflection", 1);
+			elements.add(new ConcreteElement(val));
+
+			var operation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
+
+				var rotL = (<Value>left.getValue()).getProperty("rotation") != null;
+				var rotR = (<Value>right.getValue()).getProperty("rotation") != null;
+
+				var rotationL = (<Value>left.getValue()).getProperty("rotation");
+				var rotationR = (<Value>right.getValue()).getProperty("rotation");
+				var reflectionL = (<Value>left.getValue()).getProperty("reflection");
+				var reflectionR = (<Value>right.getValue()).getProperty("reflection");
+
+				var newVal:Value = new Value();
+
+				if (rotL && rotR) {
+					newVal.addProperty("rotation", (rotationL + rotationR) % order);
+				}
+				else if (rotL && !rotR) {
+					newVal.addProperty("reflection", (rotationL + reflectionR) % order);
+				}
+				else if (!rotL && rotR) {
+					newVal.addProperty("reflection", ((reflectionL - rotationR) + order) % order);
+				}
+				else if (!rotL && !rotR) {
+					newVal.addProperty("rotation", ((reflectionL - reflectionR) + order) % order);
+				}
+
+				return new groups.ConcreteElement(newVal);
+			};
+			g = VisualGroup.createGroup(elements, operation);
+
+			g.visualize = function (e:VisualElement) {
+
+				var repr = document.createElement("div");
+				var symbolText;
+				var subText = document.createElement("sub"); // lol - subtext
+
+				repr.style.width = "20px";
+				repr.style.height = "20px";
+				repr.style.margin = "2px";
+
+				var rot = (<Value>e.getValue()).getProperty("rotation") != null;
+				var rotations = (<Value>e.getValue()).getProperty("rotation");
+				var reflections = (<Value>e.getValue()).getProperty("reflection");
+
+				if (rot) {
+					symbolText = Background.createTextSpan("R");
+					subText.innerHTML = rotations.toString();
+				}
+				else {
+					symbolText = Background.createTextSpan("S");
+					subText.innerHTML = reflections.toString();
+				}
+				symbolText.appendChild(subText);
+				repr.appendChild(symbolText);
+
+				return repr;
+			};
+
+			return g;
+
 		}
 
 		private displaySubgroups() {
@@ -310,59 +465,6 @@ module group_app {
 			propertyText.innerHTML += "Cyclic.";
 			propertyItem.appendChild(propertyText);
 			this.propertiesList.appendChild(propertyItem);
-		}
-
-		private colorGroupSample(rLevels:number, gLevels:number, bLevels:number): VisualGroup {
-			var g:VisualGroup;
-
-			var elements:Elements = new Elements();
-
-			elements.add(new ConcreteElement(new utils.OrderedTriple(1, 0, 0)));
-			elements.add(new ConcreteElement(new utils.OrderedTriple(0, 1, 0)));
-			elements.add(new ConcreteElement(new utils.OrderedTriple(0,0,1)));
-
-			var operation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
-				var red = ((<utils.OrderedTriple>left.getValue()).x + (<utils.OrderedTriple>right.getValue()).x) % rLevels;
-				var green = ((<utils.OrderedTriple>left.getValue()).y + (<utils.OrderedTriple>right.getValue()).y) % gLevels;
-				var blue = ((<utils.OrderedTriple>left.getValue()).z + (<utils.OrderedTriple>right.getValue()).z) % bLevels;
-
-				return new groups.ConcreteElement(new utils.OrderedTriple(red, green, blue));
-			};
-
-			g = VisualGroup.createGroup(elements, operation);
-			g.visualize = function (e:VisualElement) {
-
-				var rIntensities = [];
-				for (var i = 0; i < rLevels; i++) {
-					rIntensities.push(i * (255 / (rLevels - 1)));
-				}
-
-				var gIntensities = [];
-				for (var i = 0; i < gLevels; i++) {
-					gIntensities.push(i * (255 / (gLevels - 1)));
-				}
-
-				var bIntensities = [];
-				for (var i = 0; i < bLevels; i++) {
-					bIntensities.push(i * (255 / (bLevels - 1)));
-				}
-
-				var repr = document.createElement("div");
-
-				repr.style.width = "20px";
-				repr.style.height = "20px";
-				repr.style.margin = "2px";
-
-				var rVal = rIntensities[e.getValue().x];
-				var gVal = gIntensities[e.getValue().y];
-				var bVal = bIntensities[e.getValue().z];
-
-				repr.style.backgroundColor =  new utils.OrderedTriple(rVal, gVal, bVal).toRGBHexString();
-
-				return repr;
-			};
-
-			return g;
 		}
     }
 	var bG:Background = new Background();
