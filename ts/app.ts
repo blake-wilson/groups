@@ -80,6 +80,9 @@ module group_app {
 		static showGraphicalCheckbox:HTMLInputElement = <HTMLInputElement>document.getElementById("graphical_table");
 		private showGraphics:boolean = true;
 
+		private userOperation:HTMLInputElement = <HTMLInputElement>document.getElementById("operation");
+		private userElements:HTMLTextAreaElement = <HTMLTextAreaElement>document.getElementById("userElts");
+
         constructor() {
 	        this.predefinedGroups = <HTMLSelectElement>document.getElementById("pre_def_groups");
 
@@ -99,6 +102,9 @@ module group_app {
 
 	        Background.showGraphicalCheckbox.checked = true;
 	        Background.showGraphicalCheckbox.addEventListener("click", () => {_self.showGraphics = Background.showGraphicalCheckbox.checked; this.refreshGroupPropsDisplay();});
+
+	        this.userOperation.addEventListener("change", () => {_self.updateGroup();});
+	        this.userElements.addEventListener("change", () => { _self.updateGroup();});
 
 	        this.switchGroups();
         }
@@ -125,7 +131,11 @@ module group_app {
 					break;
 				case "3":
 					this.prepPromptDihedral();
-					this.g = this.dihedralExpample(3); // initial values for order of group / 2.
+					this.g = this.dihedralExample(3); // initial values for order of group / 2.
+					this.table = new groups.CayleyTable(this.g);
+					break;
+				case "4":
+					this.g = this.customGroup();
 					this.table = new groups.CayleyTable(this.g);
 					break;
 				default:
@@ -166,7 +176,12 @@ module group_app {
 						alert("Order must be > 2 for dihedral group.")
 						break;
 					}
-					this.g = this.dihedralExpample(+order);
+					this.g = this.dihedralExample(+order);
+					this.table = new groups.CayleyTable(this.g);
+					break;
+				// custom group
+				case "4":
+					this.g = this.customGroup();
 					this.table = new groups.CayleyTable(this.g);
 					break;
 				default:
@@ -319,7 +334,7 @@ module group_app {
 			return g;
 		}
 
-		private dihedralExpample(order:number): VisualGroup {
+		private dihedralExample(order:number): VisualGroup {
 			var g:VisualGroup;
 
 			var elements:Elements = new Elements();
@@ -360,7 +375,7 @@ module group_app {
 			};
 			g = VisualGroup.createGroup(elements, operation);
 
-			g.visualize = function (e:VisualElement) {
+			g.visualize = function (e:VisualElement): HTMLElement {
 
 				var repr = document.createElement("div");
 				var symbolText;
@@ -387,9 +402,31 @@ module group_app {
 
 				return repr;
 			};
-
 			return g;
+		}
 
+		private customGroup(): VisualGroup {
+			var opRes:string = "new ConcreteElement(";
+			var userOperation:string = this.userOperation.value.replace("left", "left.getValue()");
+			userOperation = userOperation.replace("right", "right.getValue()");
+			opRes += userOperation + ")";
+			 var operation = function(left:groups.ConcreteElement, right:groups.ConcreteElement) {
+				return eval(opRes);
+			};
+
+			var elements:Elements = new Elements();
+			var userElementStrings:string[] = this.userElements.value.split(",");
+			for (var i = 0; i < userElementStrings.length; i++) {
+				var value;
+				value = (!isNaN(+userElementStrings[i])) ? +userElementStrings[i] : userElementStrings[i];
+				elements.add(new ConcreteElement(value));
+			}
+			var g:VisualGroup = VisualGroup.createGroup(elements, operation);
+
+			g.visualize = function (e: VisualElement): HTMLElement {
+				return Background.createTextSpan(e.getValue());
+			};
+			return g;
 		}
 
 		private displaySubgroups() {

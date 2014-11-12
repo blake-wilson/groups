@@ -31,6 +31,7 @@ module groups {
 			this.g = g;
 			this.table = <HTMLTableElement>document.getElementById("cayley_table");
 			this.elementsResults = new Collection<VisualElement>();
+			this.showVisual = group_app.Background.showGraphicalCheckbox.checked;
 			this.updateTable(g.elements);
 
 			//bind event listeners
@@ -144,7 +145,7 @@ module groups {
 
 			for (var i = 0; i < elements.size(); i++) {
 				row = document.createElement('tr');
-				row.style.height = "20px";
+
 				this.table.appendChild(row);
 
 				for (var j = 0; j < elements.size(); j++)
@@ -229,18 +230,5 @@ module groups {
 
 			this.displayGroup();
 		}
-
-//		private highlightColumn() {
-//			var col = this.getAttribute("col");
-//			var tableNodes:NodeList = this.table.childNodes;
-//			var child:HTMLElement;
-//
-//			for (var i = 0; i < tableNodes.length; i++)
-//			{
-//				child = tableNodes[i];
-//				if (child.col == col)
-//					child.style.backgroundColor = "#ddffdd"
-//			}
-//		}
 	}
 }
