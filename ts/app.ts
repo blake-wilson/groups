@@ -440,6 +440,7 @@ module group_app {
 
 			for (var i = 0; i < this.subgroups.size(); i++) {
 				listItem = document.createElement("li");
+				listItem.className = "subgroup";
 
 				var table:HTMLElement = document.createElement("table");
 				var groupRow:HTMLElement = document.createElement("tr");
