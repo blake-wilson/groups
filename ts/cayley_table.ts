@@ -61,27 +61,33 @@ module groups {
 		private updateOpWindow(operand1:VisualElement, operand2:VisualElement, res:VisualElement) {
 
 			this.opWindow.innerHTML = "";
-			var cell:HTMLElement = document.createElement("td");
+			var cell:HTMLElement = this.createCayleyCell();
 
 			cell.appendChild(this.drawTableCell(operand1));
 			this.opWindow.appendChild(cell);
-			cell = document.createElement("td");
+			cell = this.createCayleyCell();
 
 			cell.appendChild(document.createTextNode(" X "));
 			this.opWindow.appendChild(cell);
-			cell = document.createElement("td");
+			cell = this.createCayleyCell();
 
 			cell.appendChild(this.drawTableCell(operand2));
 			this.opWindow.appendChild(cell);
-			cell = document.createElement("td");
+			cell = this.createCayleyCell();
 
 			cell.appendChild(document.createTextNode(" = "));
 			this.opWindow.appendChild(cell);
-			cell = document.createElement("td");
+			cell = this.createCayleyCell();
 
 
 			cell.appendChild(this.drawTableCell(res));
 			this.opWindow.appendChild(cell);
+		}
+
+		private createCayleyCell():HTMLElement {
+			var cell = document.createElement("td");
+			cell.className = "cayleycell";
+			return cell;
 		}
 
 		displayGroup() {
@@ -150,7 +156,7 @@ module groups {
 
 				for (var j = 0; j < elements.size(); j++)
 				{
-					col = document.createElement('td');
+					col = this.createCayleyCell();
 					//col.style.width = "20px";
 					col.style.textAlign = "center";
 
