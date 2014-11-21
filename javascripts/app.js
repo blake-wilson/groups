@@ -1387,10 +1387,8 @@ var groups;
         };
 
         SubgroupHelper.prototype.calcSubgroupsByBruteForce = function (g) {
-            if (g.elements.size() > 22) {
-                alert("Group too large to attempt brute force subgroup calculation");
+            if (g.elements.size() > 22)
                 return null;
-            }
 
             var combos = new Combinations(g.elements, g.elements.size());
             var res = new Collection();
@@ -1831,12 +1829,14 @@ var group_app;
 
         Background.prototype.displaySubgroups = function () {
             this.subgroupsList.innerHTML = "";
-
-            if (this.subgroups == null)
-                return;
-
             var listItem;
-            var groupText;
+
+            if (this.subgroups == null) {
+                listItem = document.createElement("li");
+                listItem.innerHTML = "Could not compute subgroups - group may be too large";
+                this.subgroupsList.appendChild(listItem);
+                return;
+            }
 
             for (var i = 0; i < this.subgroups.size(); i++) {
                 listItem = document.createElement("li");
