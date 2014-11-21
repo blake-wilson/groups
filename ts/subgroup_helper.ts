@@ -110,10 +110,8 @@ module groups {
 
 		private calcSubgroupsByBruteForce(g:Group): Collection<Elements> {
 
-			if (g.elements.size() > 22) {
-				alert("Group too large to attempt brute force subgroup calculation");
+			if (g.elements.size() > 22)
 				return null;
-			}
 
 			var combos:Combinations<IElement> = new Combinations<IElement>(g.elements, g.elements.size());
 			var res:Collection<Collection<IElement>> = new Collection<Elements>();

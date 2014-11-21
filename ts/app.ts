@@ -431,12 +431,14 @@ module group_app {
 
 		private displaySubgroups() {
 			this.subgroupsList.innerHTML = "";
-
-			if (this.subgroups == null)
-				return;
-
 			var listItem:HTMLElement;
-			var groupText:Text;
+
+			if (this.subgroups == null) {
+				listItem = document.createElement("li");
+				listItem.innerHTML = "Could not compute subgroups - group may be too large"
+				this.subgroupsList.appendChild(listItem);
+				return;
+			}
 
 			for (var i = 0; i < this.subgroups.size(); i++) {
 				listItem = document.createElement("li");
